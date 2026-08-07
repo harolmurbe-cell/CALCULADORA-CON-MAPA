@@ -11,6 +11,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- Leaflet CSS para el Mapa Táctico -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
         :root {
             --bg-color: #020617;
@@ -103,6 +106,9 @@
             text-transform: uppercase; 
             border-bottom: 1px solid var(--border-color); 
             padding-bottom: 6px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         /* CONTROLES E INPUTS */
@@ -201,9 +207,26 @@
         .progress-fill { height: 100%; background: var(--accent-green); }
         .hidden { display: none !important; }
 
+        /* ESTILOS DEL MAPA */
+        #map {
+            width: 100%;
+            height: 320px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            z-index: 1;
+        }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+
         @media (max-width: 480px) {
             th, td { padding: 6px 2px !important; font-size: 0.65rem !important; }
             .sum-val { font-size: 0.95rem !important; }
+            #map { height: 260px; }
         }
     </style>
 </head>
@@ -292,7 +315,7 @@
                 </div>
             </div>
 
-            <!-- RESULTADOS Y DESGLOSE -->
+            <!-- RESULTADOS, MAPA Y DESGLOSE -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 
                 <div class="summary-grid">
@@ -321,6 +344,15 @@
                     </div>
                 </div>
 
+                <!-- SECCIÓN MAPA TÁCTICO -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>Mapa Táctico — Río Arauca</span>
+                        <span style="font-size: 0.6rem; color: var(--accent-cyan);">TRAYECTO COLOMBIANO</span>
+                    </div>
+                    <div id="map"></div>
+                </div>
+
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
                         <h3 id="tituloDetalle" style="font-size: 0.75rem; font-weight: 700; color: #fff; text-transform: uppercase;">Desglose de Flotilla</h3>
@@ -347,6 +379,9 @@
         </div>
     </div>
 
+    <!-- Leaflet JS para el Mapa Táctico -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
         var unidadesData = {
             "EOFBC_52_2": {
@@ -370,6 +405,65 @@
         };
 
         var modoActual = 'grupo';
+        var map, rioLayer;
+
+        // Puntos de referencia sobre el curso del Río Arauca en Colombia
+        var puntosRioArauca = [
+            [7.0853, -72.0833], // Paso Nuevo / Zona Alta
+            [7.0831, -71.5542], // Saravena (Sector Río Arauca)
+            [7.0261, -71.2917], // Puerto Rondón / Reinera
+            [7.0847, -70.7591], // Arauquita
+            [7.0903, -70.7200], // Caracol
+            [7.0886, -70.3725], // Municipio de Arauca / Puesto de Mando BFLIM52
+            [6.9833, -69.8000]  // Montañita / Salida hacia Venezuela
+        ];
+
+        function initMap() {
+            // Inicializar mapa centrado en el departamento de Arauca sobre el Río
+            map = L.map('map', {
+                attributionControl: false
+            }).setView([7.0886, -70.7591], 8);
+
+            // Capa Satelital ESRI (Ideal para navegación fluvial)
+            var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 17
+            });
+
+            // Capa de Cartografía Estándar
+            var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 17
+            });
+
+            esriSat.addTo(map);
+
+            var baseMaps = {
+                "Satelital": esriSat,
+                "Mapa": osm
+            };
+
+            L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+            // Dibujar línea táctica del curso del Río Arauca
+            rioLayer = L.polyline(puntosRioArauca, {
+                color: '#22d3ee',
+                weight: 4,
+                opacity: 0.85,
+                dashArray: '8, 6'
+            }).addTo(map);
+
+            // Marcadores tácticos clave
+            L.circleMarker([7.0886, -70.3725], { radius: 7, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.9 })
+                .addTo(map)
+                .bindPopup("<b>BFLIM52 / Arauca</b><br>Base Principal");
+
+            L.circleMarker([7.0847, -70.7591], { radius: 6, color: '#fbbf24', fillColor: '#fbbf24', fillOpacity: 0.9 })
+                .addTo(map)
+                .bindPopup("<b>Arauquita</b><br>Punto Control Fluvial");
+
+            L.circleMarker([7.0831, -71.5542], { radius: 6, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.9 })
+                .addTo(map)
+                .bindPopup("<b>Saravena</b><br>Sector Alto Arauca");
+        }
 
         function renderSeleccionBote() {
             var unidadKey = document.getElementById('unidadSelect').value;
@@ -548,6 +642,7 @@
         window.onload = function() {
             bindEvents();
             renderSeleccionBote();
+            initMap();
             calcular();
         };
     </script>
