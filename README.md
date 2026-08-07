@@ -550,6 +550,94 @@
             renderSeleccionBote();
             calcular();
         };
+        // ==========================================
+// 1. INICIALIZACIÓN DEL MAPA (Leaflet)
+// ==========================================
+// Centrado inicial en la jurisdicción del Río Arauca
+const map = L.map('map').setView([7.017873, -71.581611], 13);
+
+// Capa Base OpenStreetMap (se guarda en caché mediante el Service Worker de la PWA)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 18,
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+// ==========================================
+// 2. MATRIZ DE COORDENADAS (Extraídas del KML)
+// ==========================================
+// Formato esperado por Leaflet: [Latitud, Longitud]
+const tramoKmlCoordenadas = [
+  [7.017873164959447, -71.58161119000000]
+  // Registra o pega aquí los demás pares de coordenadas [lat, lng] del KML
+];
+
+// Dibujar el vector en el mapa con estilo táctico
+const capaRuta = L.polyline(tramoKmlCoordenadas, {
+  color: '#d32f2f', // Rojo táctico
+  weight: 4,
+  opacity: 0.85
+}).addTo(map);
+
+// Ajustar la vista del mapa para que encuadre automáticamente todo el tramo
+map.fitBounds(capaRuta.getBounds());
+
+
+// ==========================================
+// 3. CÁLCULO DE DISTANCIA DE LA RUTA (Nativa)
+// ==========================================
+/**
+ * Suma la distancia entre los pares de puntos de la Polyline
+ * @param {Array} puntos - Matriz de coordenadas [[lat, lng], ...]
+ * @returns {number} Distancia total en Millas Náuticas (NM)
+ */
+function obtenerDistanciaRutaNM(puntos) {
+  let distanciaMetros = 0;
+
+  for (let i = 0; i < puntos.length - 1; i++) {
+    const p1 = L.latLng(puntos[i][0], puntos[i][1]);
+    const p2 = L.latLng(puntos[i + 1][0], puntos[i + 1][1]);
+    distanciaMetros += p1.distanceTo(p2);
+  }
+
+  // 1 Milla Náutica = 1852 metros
+  return distanciaMetros / 1852;
+}
+
+
+// ==========================================
+// 4. FUNCIÓN INTEGRADA DE CÁLCULO DE COMBUSTIBLE
+// ==========================================
+function ejecutarCalculoTáctico() {
+  // A. Obtener parámetros seleccionados en la interfaz
+  const rpm = parseInt(document.getElementById('selectRPM').value);
+  const sentido = document.getElementById('selectCorriente').value; // 'favor', 'contra', 'neutro'
+  const numMotores = parseInt(document.getElementById('numMotores').value) || 2;
+
+  // B. Calcular la distancia directamente de la Polyline trazada
+  const distanciaNM = obtenerDistanciaRutaNM(tramoKmlCoordenadas);
+
+  // C. Tablas de consumo y factores tácticos
+  const consumoGPH = { 2000: 4.5, 3000: 8.0, 4000: 14.2, 5000: 22.0 };
+  const factorCorriente = { 'favor': 1.25, 'contra': 0.75, 'neutro': 1.0 };
+  const velBaseKts = 20;
+
+  // D. Cálculos operacionales
+  const velEfectiva = velBaseKts * (factorCorriente[sentido] || 1.0);
+  const tiempoHoras = distanciaNM / velEfectiva;
+  const consumoHoraTotal = (consumoGPH[rpm] || 12.0) * numMotores;
+
+  const galonesBase = tiempoHoras * consumoHoraTotal;
+  const galonesReserva = galonesBase * 0.20; // 20% Reserva Táctica
+  const galonesTotales = Math.ceil(galonesBase + galonesReserva);
+
+  // E. Actualizar elementos del HTML/UI
+  document.getElementById('resDistancia').innerText = `${distanciaNM.toFixed(2)} NM`;
+  document.getElementById('resTiempo').innerText = `${Math.round(tiempoHoras * 60)} min`;
+  document.getElementById('resCombustible').innerText = `${galonesTotales} Gal (Incl. 20% Reserva)`;
+}
+
+// Escuchar el evento del botón "Calcular"
+document.getElementById('btnCalcular').addEventListener('click', ejecutarCalculoTáctico);
     </script>
 </body>
 </html>
