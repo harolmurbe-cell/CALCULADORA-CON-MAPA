@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calculadora Táctica y Mapa Fluvial Arauca - EOFBC</title>
+    <title>Calculadora Táctica de Combustible Fluvial - EOFBC</title>
     
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <!-- Leaflet CSS (Mapa) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         :root {
@@ -50,7 +47,7 @@
 
         .container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -86,7 +83,7 @@
         /* GRID SYSTEM */
         .grid { display: flex; flex-direction: column; gap: 16px; }
         @media (min-width: 768px) {
-            .grid { display: grid; grid-template-columns: 1fr 1.8fr; }
+            .grid { display: grid; grid-template-columns: 1fr 2fr; }
         }
 
         .card { 
@@ -148,16 +145,6 @@
         }
         .btn-toggle.active { background: #059669; color: #fff; }
 
-        /* MAPA */
-        #map {
-            width: 100%;
-            height: 280px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: #0b1329;
-            z-index: 1;
-        }
-
         /* TARJETAS METRICAS */
         .summary-grid { 
             display: grid; 
@@ -217,7 +204,6 @@
         @media (max-width: 480px) {
             th, td { padding: 6px 2px !important; font-size: 0.65rem !important; }
             .sum-val { font-size: 0.95rem !important; }
-            #map { height: 220px; }
         }
     </style>
 </head>
@@ -229,9 +215,9 @@
         <header>
             <div class="title-row">
                 <span class="dot"></span>
-                <h1>Calculadora Táctica y Mapa Fluvial - EOFBC</h1>
+                <h1>Calculadora Táctica EOFBC</h1>
             </div>
-            <p class="subtitle">Batallón Fluvial de Infantería de Marina — Jurisdicción Río Arauca</p>
+            <p class="subtitle">Batallón Fluvial de Infantería de Marina — Control Operativo 52-1 / 52-2</p>
             <div class="badge-reserva">MARGEN SEGURIDAD: <strong style="color: var(--accent-amber);">30% RESERVA</strong></div>
         </header>
 
@@ -241,18 +227,6 @@
             <div class="card">
                 <div class="card-title">Parámetros de Navegación</div>
                 
-                <div class="field-group">
-                    <label>Ruta Predeterminada (Jurisdicción):</label>
-                    <select id="rutaPredefinidaSelect">
-                        <option value="custom">-- Selección Manual / Directa --</option>
-                        <option value="kml_route">Trazado Vectorial KML (Río Arauca)</option>
-                        <option value="contreras_arauquita">Pto. Contreras ➔ Arauquita (~38 MN)</option>
-                        <option value="arauquita_arauca">Arauquita ➔ Arauca (~52 MN)</option>
-                        <option value="arauca_ptocolombia">Arauca ➔ Pto. Colombia (~35 MN)</option>
-                        <option value="contreras_ptocolombia">Ruta Completa: Pto. Contreras ➔ Pto. Colombia (~125 MN)</option>
-                    </select>
-                </div>
-
                 <div class="field-group">
                     <label>Modo de Cálculo:</label>
                     <div class="toggle-group">
@@ -309,18 +283,18 @@
                     <label for="precioGalonInput">Precio Galón (COP):</label>
                     <input type="number" id="precioGalonInput" value="16000" min="0" step="100" inputmode="numeric">
                 </div>
+
+                <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.65rem; color: var(--text-muted);">
+                    <div style="font-weight: bold; color: #cbd5e1; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 2px;">Consumo Base Bimotor Combinado:</div>
+                    <div style="display:flex; justify-content:space-between;"><span>2x Mercury 90 HP:</span> <strong style="color:var(--accent-green-bright);">0.76 Gln/MN</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>2x Mercury 115 HP:</span> <strong style="color:var(--accent-green-bright);">0.80 Gln/MN</strong></div>
+                    <div style="display:flex; justify-content:space-between;"><span>2x Mercury 200 HP:</span> <strong style="color:var(--accent-green-bright);">1.70 Gln/MN</strong></div>
+                </div>
             </div>
 
-            <!-- MAPA Y RESULTADOS DESGLOSADOS -->
+            <!-- RESULTADOS Y DESGLOSE -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 
-                <!-- SECCIÓN MAPA -->
-                <div class="card">
-                    <div class="card-title">Mapa Operativo del Río Arauca</div>
-                    <div id="map"></div>
-                </div>
-
-                <!-- RESUMEN DE CONSUMO -->
                 <div class="summary-grid">
                     <div class="sum-card">
                         <span class="sum-title">Comb. Req.</span>
@@ -347,7 +321,6 @@
                     </div>
                 </div>
 
-                <!-- TABLA -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
                         <h3 id="tituloDetalle" style="font-size: 0.75rem; font-weight: 700; color: #fff; text-transform: uppercase;">Desglose de Flotilla</h3>
@@ -374,11 +347,7 @@
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script>
-        // --- DATOS DE UNIDADES ---
         var unidadesData = {
             "EOFBC_52_2": {
                 nombre: "EOFBC 52-2",
@@ -401,73 +370,6 @@
         };
 
         var modoActual = 'grupo';
-        var map;
-        var capaRutaKml;
-
-        // --- PUNTOS Y TRAYECTO DEL RÍO ARAUCA ---
-        var puntosJurisdiccion = [
-            { nombre: "Puerto Contreras (Saravena)", coords: [6.8928, -71.8481] },
-            { nombre: "Arauquita", coords: [7.0274, -71.4272] },
-            { nombre: "Arauca (Base / Muelle)", coords: [7.0847, -70.7591] },
-            { nombre: "Puerto Colombia (Arauca)", coords: [6.9583, -70.3667] }
-        ];
-
-        // --- COORDENADAS KML CONVERTIDAS A FORMATO LEAFLET [Lat, Lng] ---
-        var tramoKmlCoordenadas = [
-            [6.979620671346603, -70.11822330370158],
-            [6.982000000000000, -70.12500000000000],
-            [6.985000000000000, -70.13500000000000] // Reemplazar / expandir con más coordenadas del KML si aplica
-        ];
-
-        function initMap() {
-            // Inicializar mapa centrado en Arauquita / sector medio
-            map = L.map('map').setView([7.02, -71.10], 8);
-
-            // Capa de mapa (CartoDB DarkMatter para interfaz táctica nocturna/oscura)
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap &copy; CARTO',
-                subdomains: 'abcd',
-                maxZoom: 14
-            }).addTo(map);
-
-            // Trazar línea táctica básica del río
-            var latlngs = puntosJurisdiccion.map(function(p) { return p.coords; });
-            var polyline = L.polyline(latlngs, { color: '#22d3ee', weight: 3, opacity: 0.6, dashArray: '5, 10' }).addTo(map);
-
-            // Trazar capa detallada del KML (Rojo Táctico)
-            capaRutaKml = L.polyline(tramoKmlCoordenadas, {
-                color: '#f43f5e',
-                weight: 4,
-                opacity: 0.85
-            }).addTo(map);
-
-            // Ajustar encuadre del mapa a la vista general
-            map.fitBounds(polyline.getBounds());
-
-            // Agregar marcadores en los puntos clave
-            puntosJurisdiccion.forEach(function(p, idx) {
-                var marker = L.circleMarker(p.coords, {
-                    radius: 6,
-                    fillColor: idx === 0 || idx === 3 ? "#fbbf24" : "#10b981",
-                    color: "#ffffff",
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.9
-                }).addTo(map);
-
-                marker.bindPopup("<strong style='color:#000;'>" + p.nombre + "</strong>");
-            });
-        }
-
-        function obtenerDistanciaRutaNM(puntos) {
-            let distanciaMetros = 0;
-            for (let i = 0; i < puntos.length - 1; i++) {
-                const p1 = L.latLng(puntos[i][0], puntos[i][1]);
-                const p2 = L.latLng(puntos[i + 1][0], puntos[i + 1][1]);
-                distanciaMetros += p1.distanceTo(p2);
-            }
-            return distanciaMetros / 1852; // Metros a Millas Náuticas
-        }
 
         function renderSeleccionBote() {
             var unidadKey = document.getElementById('unidadSelect').value;
@@ -621,41 +523,9 @@
             document.getElementById('tablaCuerpo').innerHTML = tablaHTML;
         }
 
-        function manejarSeleccionRuta() {
-            var val = document.getElementById('rutaPredefinidaSelect').value;
-            var distInput = document.getElementById('distanciaInput');
-            var unitSelect = document.getElementById('unidadDistSelect');
-
-            unitSelect.value = "MN";
-
-            switch(val) {
-                case "kml_route":
-                    var distKML = obtenerDistanciaRutaNM(tramoKmlCoordenadas);
-                    distInput.value = distKML.toFixed(1);
-                    if (capaRutaKml && map) map.fitBounds(capaRutaKml.getBounds());
-                    break;
-                case "contreras_arauquita":
-                    distInput.value = 38;
-                    break;
-                case "arauquita_arauca":
-                    distInput.value = 52;
-                    break;
-                case "arauca_ptocolombia":
-                    distInput.value = 35;
-                    break;
-                case "contreras_ptocolombia":
-                    distInput.value = 125;
-                    break;
-                default:
-                    return;
-            }
-            calcular();
-        }
-
         function bindEvents() {
             document.getElementById('btnModoGrupo').onclick = function() { setModo('grupo'); };
             document.getElementById('btnModoInd').onclick = function() { setModo('individual'); };
-            document.getElementById('rutaPredefinidaSelect').onchange = manejarSeleccionRuta;
 
             var elementIds = ['unidadSelect', 'boteIndSelect', 'distanciaInput', 'unidadDistSelect', 'precioGalonInput', 'corrienteSelect', 'rpmSelect'];
             var events = ['input', 'change', 'keyup', 'blur'];
@@ -666,7 +536,6 @@
                     for (var j = 0; j < events.length; j++) {
                         el.addEventListener(events[j], (function(id) {
                             return function() {
-                                if (id === 'distanciaInput') document.getElementById('rutaPredefinidaSelect').value = 'custom';
                                 if (id === 'unidadSelect') renderSeleccionBote();
                                 calcular();
                             };
@@ -679,7 +548,6 @@
         window.onload = function() {
             bindEvents();
             renderSeleccionBote();
-            initMap();
             calcular();
         };
     </script>
