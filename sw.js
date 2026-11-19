@@ -1,6 +1,6 @@
 // Service worker: la app funciona sin señal una vez abierta con conexión.
 // Cambie VERSION cada vez que publique cambios para forzar la actualización.
-var VERSION = "eofbc-v3";
+var VERSION = "eofbc-v3.1";
 var APP = ["./", "./index.html", "./ruta_arauca.js", "./manifest.json", "./icon-192.png", "./icon-512.png",
            "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"];
 var TILES = "eofbc-tiles";

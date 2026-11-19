@@ -125,6 +125,82 @@
         .pill { display: inline-block; font-size: .58rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: .3px; }
         .pill-ok { background: #064e3b; color: #6ee7b7; } .pill-warn { background: #78350f; color: #fde68a; } .pill-bad { background: #881337; color: #fecdd3; }
         .hidden { display: none !important; }
+
+        /* ---------- Bienvenida ---------- */
+        #bienvenida { position: fixed; inset: 0; z-index: 2000; background: radial-gradient(ellipse at 50% 0%, #0b3b35 0%, #020617 60%);
+            display: flex; align-items: center; justify-content: center; padding: 24px; padding-top: calc(24px + env(safe-area-inset-top)); overflow-y: auto;
+            transition: opacity .35s, visibility .35s; }
+        #bienvenida.oculta { opacity: 0; visibility: hidden; }
+        .bv-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 18px; text-align: center; }
+        .bv-logo { margin: 0 auto; filter: drop-shadow(0 0 24px rgba(16,185,129,.35)); }
+        .bv-title { font-size: 1.5rem; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; line-height: 1.15; color: #fff; }
+        .bv-sub { font-size: .8rem; color: var(--text-muted); margin-top: 6px; }
+        .bv-feats { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+        .bv-feat { display: flex; gap: 12px; align-items: center; background: rgba(15,23,42,.8); border: 1px solid var(--border-color); border-radius: 12px; padding: 11px 13px; }
+        .bv-feat .n { flex: none; width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: .8rem; background: #064e3b; color: #6ee7b7; }
+        .bv-feat b { display: block; font-size: .8rem; color: #e2e8f0; }
+        .bv-feat span { font-size: .7rem; color: var(--text-muted); }
+        .bv-start { padding: 16px; font-size: .95rem; border-radius: 14px; background: #059669; border: none; color: #fff; font-weight: 900; letter-spacing: .4px; cursor: pointer; box-shadow: 0 8px 24px rgba(5,150,105,.35); }
+        .bv-start:active { transform: scale(.98); }
+        .bv-foot { display: flex; justify-content: space-between; align-items: center; font-size: .68rem; color: var(--text-muted); gap: 10px; flex-wrap: wrap; }
+        .bv-foot label { display: flex; align-items: center; gap: 6px; text-transform: none; font-weight: 600; color: var(--text-muted); font-size: .7rem; cursor: pointer; }
+        .bv-foot input { width: 18px; height: 18px; padding: 0; appearance: auto; -webkit-appearance: checkbox; accent-color: #10b981; }
+        .bv-warn { font-size: .68rem; color: #fcd34d; background: #3a2a05; border: 1px solid #92400e; border-radius: 10px; padding: 8px 10px; }
+
+        /* ---------- Encabezado ---------- */
+        .hdr-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .net { font-size: .6rem; font-weight: 800; padding: 4px 8px; border-radius: 999px; letter-spacing: .4px; }
+        .net.on { background: #064e3b; color: #6ee7b7; } .net.off { background: #78350f; color: #fde68a; }
+        .icon-btn { width: 36px; height: 36px; padding: 0; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: #e2e8f0; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .title-row svg { flex: none; }
+
+        /* ---------- Botones RPM ---------- */
+        .rpm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .rpm-btn { border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-muted); border-radius: 10px; padding: 10px 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .rpm-btn b { font-size: .9rem; font-family: monospace; color: #e2e8f0; }
+        .rpm-btn span { font-size: .56rem; font-weight: 700; text-transform: uppercase; }
+        .rpm-btn.active { background: #059669; border-color: #059669; color: #d1fae5; }
+        .rpm-btn.active b { color: #fff; }
+
+        /* ---------- Navegación inferior (celular) ---------- */
+        #navInf { display: none; }
+        @media (max-width: 819px) {
+            body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+            #navInf { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
+                background: rgba(15,23,42,.97); border-top: 1px solid var(--border-color); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); backdrop-filter: blur(8px); }
+            #navInf button { background: transparent; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; font-size: .62rem; font-weight: 800; text-transform: uppercase; cursor: pointer; border-radius: 10px; }
+            #navInf button .ic { font-size: 1.15rem; line-height: 1; }
+            #navInf button.active { color: #34d399; background: #052e22; }
+            body[data-tab] [data-sec] { display: none !important; }
+            body[data-tab="plan"] [data-sec="plan"], body[data-tab="mapa"] [data-sec="mapa"],
+            body[data-tab="detalle"] [data-sec="detalle"], body[data-tab="flota"] [data-sec="flota"] { display: flex !important; }
+            body[data-tab="mapa"] #map { height: calc(100vh - 360px); min-height: 280px; }
+            .summary-grid .sum-card { padding: 9px; }
+            .status { padding: 10px 12px; }
+        }
+
+        /* ---------- Modo sol (alto contraste claro) ---------- */
+        body.sol { --bg-color: #e2e8f0; --card-bg: #ffffff; --text-main: #020617; --text-muted: #334155; --border-color: #94a3b8;
+                   --accent-green-bright: #047857; --accent-cyan: #0e7490; --accent-amber: #b45309; }
+        body.sol, body.sol html { background: #e2e8f0; }
+        body.sol h1, body.sol h3, body.sol .perf-title, body.sol .bv-feat b { color: #020617 !important; }
+        body.sol label, body.sol .lbl { color: #0f172a; }
+        body.sol input, body.sol select { color: #020617; background: #f8fafc; border-color: #64748b; }
+        body.sol .btn, body.sol .icon-btn { color: #020617; background: #f8fafc; }
+        body.sol .btn-primary { color: #fff; background: #047857; }
+        body.sol .rpm-btn b { color: #020617; } body.sol .rpm-btn.active b { color: #fff; }
+        body.sol .table-container, body.sol table, body.sol td, body.sol th { background: #fff; }
+        body.sol [style*="color:#fff"], body.sol [style*="color: #fff"] { color: #020617 !important; }
+        body.sol [style*="color:#34d399"], body.sol .sum-val { color: #047857 !important; }
+        body.sol [style*="color:#fbbf24"] { color: #b45309 !important; }
+        body.sol #cardRestante { color: #0e7490 !important; } body.sol #cardAutonomiaReserva { color: #b45309 !important; }
+        body.sol .sum-sub, body.sol .muted { color: #334155 !important; }
+        body.sol .st-ok { background: #d1fae5; color: #064e3b; border-color: #047857; }
+        body.sol .st-warn { background: #fef3c7; color: #78350f; border-color: #b45309; }
+        body.sol .st-bad { background: #ffe4e6; color: #881337; border-color: #be123c; }
+        body.sol #navInf { background: rgba(255,255,255,.97); }
+        body.sol #navInf button.active { background: #d1fae5; color: #047857; }
+        body.sol .progress-bar { background: #e2e8f0; }
         .perf-table input { padding: 6px; font-size: .78rem; border-radius: 6px; text-align: center; }
         .perf-table td, .perf-table th { padding: 4px; font-family: inherit; }
         .perf-title { font-size: .7rem; font-weight: 800; color: #e2e8f0; margin-bottom: 4px; }
@@ -143,14 +219,40 @@
     </style>
 </head>
 <body>
+<div id="bienvenida" class="oculta" role="dialog" aria-label="Bienvenida">
+    <div class="bv-box">
+        <div class="bv-logo"><svg viewBox="0 0 64 64" width="96" height="96" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0f172a" stroke="#1e293b"/><path d="M32 10 C32 10 18 26 18 34 a14 14 0 0 0 28 0 C46 26 32 10 32 10z" fill="#10b981"/><path d="M6 50 q6-6 13 0 t13 0 t13 0 t13 0" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round"/></svg></div>
+        <div>
+            <div class="bv-title">Calculadora Táctica<br>de Combustible</div>
+            <div class="bv-sub">Batallón Fluvial de Infantería de Marina · EOFBC 52-1 / 52-2 · Río Arauca</div>
+        </div>
+        <div class="bv-feats">
+            <div class="bv-feat"><div class="n">1</div><div><b>Elija el trayecto</b><span>Origen y destino sobre el río, en la lista o en el mapa.</span></div></div>
+            <div class="bv-feat"><div class="n">2</div><div><b>Ajuste la operación</b><span>RPM, corriente, combustible a bordo e ida y regreso.</span></div></div>
+            <div class="bv-feat"><div class="n">3</div><div><b>Revise y comparta</b><span>Viabilidad por bote, tiempo, costo e informe para WhatsApp.</span></div></div>
+        </div>
+        <div class="bv-warn">Datos de consumo y velocidad PROVISIONALES hasta recibir las mediciones de los comandantes.</div>
+        <button type="button" id="btnIniciar" class="bv-start">INICIAR PLANEAMIENTO</button>
+        <div class="bv-foot">
+            <label><input type="checkbox" id="chkNoBienvenida"> No mostrar al abrir</label>
+            <span id="bvVersion"></span>
+        </div>
+    </div>
+</div>
+
 <div class="container">
 
     <header>
         <div>
-            <div class="title-row"><span class="dot"></span><h1>Calculadora Táctica EOFBC</h1></div>
+            <div class="title-row"><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0f172a" stroke="#1e293b"/><path d="M32 10 C32 10 18 26 18 34 a14 14 0 0 0 28 0 C46 26 32 10 32 10z" fill="#10b981"/><path d="M6 50 q6-6 13 0 t13 0 t13 0 t13 0" fill="none" stroke="#22d3ee" stroke-width="4" stroke-linecap="round"/></svg><h1>Calculadora Táctica EOFBC</h1></div>
             <p class="subtitle">Batallón Fluvial de Infantería de Marina — Control Operativo 52-1 / 52-2</p>
         </div>
-        <div class="badge">MARGEN SEGURIDAD: <strong style="color: var(--accent-amber);">30% RESERVA</strong></div>
+        <div class="hdr-actions">
+            <span id="netBadge" class="net on">EN LÍNEA</span>
+            <div class="badge">RESERVA <strong style="color: var(--accent-amber);">30%</strong></div>
+            <button type="button" id="btnSol" class="icon-btn" title="Modo sol (alto contraste)">☀</button>
+            <button type="button" id="btnInfo" class="icon-btn" title="Pantalla de inicio">ⓘ</button>
+        </div>
     </header>
 
     <div class="grid">
@@ -192,7 +294,7 @@
 
         <!-- ===================== PARÁMETROS ===================== -->
         <div class="col" id="colParam">
-            <div class="card">
+            <div class="card" data-sec="plan">
                 <div class="card-title">Fuerza</div>
 
                 <div class="field-group">
@@ -219,7 +321,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card" data-sec="plan">
                 <div class="card-title">Trayecto</div>
 
                 <div class="field-group">
@@ -289,11 +391,17 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card" data-sec="plan">
                 <div class="card-title">Operación</div>
                 <div class="field-group">
-                    <label for="rpmSelect">Régimen de marcha (RPM)</label>
-                    <select id="rpmSelect">
+                    <span class="lbl">Régimen de marcha (RPM)</span>
+                    <div class="rpm-grid" id="rpmBtns">
+                        <button type="button" class="rpm-btn" data-rpm="2500"><b>2.500</b><span>Patrullaje</span></button>
+                        <button type="button" class="rpm-btn" data-rpm="4000"><b>4.000</b><span>Económico</span></button>
+                        <button type="button" class="rpm-btn" data-rpm="4800"><b>4.800</b><span>Táctico</span></button>
+                        <button type="button" class="rpm-btn" data-rpm="5500"><b>5.500</b><span>Interdicción</span></button>
+                    </div>
+                    <select id="rpmSelect" class="hidden" aria-hidden="true">
                         <option value="2500">2.500 RPM — Patrullaje</option>
                         <option value="4000">4.000 RPM — Crucero económico</option>
                         <option value="4800" selected>4.800 RPM — Crucero táctico</option>
@@ -317,7 +425,7 @@
                 </details>
             </div>
 
-            <div class="card">
+            <div class="card" data-sec="flota">
                 <details class="notes" id="detFlota">
                     <summary style="color:var(--accent-green-bright);">Datos de la flota por RPM <span class="pill pill-warn" style="margin-left:6px;">PROVISIONAL</span></summary>
                     <div>
@@ -334,7 +442,7 @@
 
         <!-- ===================== MAPA Y DETALLE ===================== -->
         <div class="col" id="colDet">
-            <div class="card">
+            <div class="card" data-sec="mapa">
                 <div class="card-title">
                     <span>Mapa táctico — Río Arauca</span>
                     <span id="mapInfo" style="font-size:.62rem; color: var(--accent-cyan);">TRAYECTO COLOMBIANO</span>
@@ -349,7 +457,7 @@
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card" data-sec="detalle">
                 <div class="row-between" style="border-bottom:1px solid var(--border-color); padding-bottom:6px;">
                     <h3 id="tituloDetalle" style="font-size:.74rem; font-weight:700; text-transform:uppercase;">Desglose de flotilla</h3>
                     <span id="badgeModo" class="pill pill-ok">CONSOLIDADO</span>
@@ -377,6 +485,12 @@
         </div>
     </div>
 </div>
+<nav id="navInf" aria-label="Secciones">
+    <button type="button" data-go="plan"><span class="ic">⚙</span>Planear</button>
+    <button type="button" data-go="mapa"><span class="ic">🗺</span>Mapa</button>
+    <button type="button" data-go="detalle"><span class="ic">☰</span>Detalle</button>
+    <button type="button" data-go="flota"><span class="ic">⛴</span>Flota</button>
+</nav>
 <div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -385,6 +499,7 @@
 // =====================================================================
 // CONFIGURACIÓN — editar aquí cuando cambie la flota o los consumos
 // =====================================================================
+var APP_VERSION = "3.1";
 var RESERVA = 0.30;          // 30% del combustible a bordo no se planifica
 var MN_A_KM = 1.852;
 
@@ -547,6 +662,7 @@ window.elegirPunto = function (i, cual) {
     if (map) map.closePopup();
     sincronizarUI();
     calcular(true);
+    toast((cual === "o" ? "Origen: " : "Destino: ") + puntosControl[i].n);
 };
 
 function actualizarMapa(r, ajustar) {
@@ -886,6 +1002,60 @@ function bindEvents() {
     $("btnCompartir").onclick = compartir;
 }
 
+// =====================================================================
+// EXPERIENCIA DE USUARIO: bienvenida, pestañas, modo sol, señal
+// =====================================================================
+function pref(k, v) {
+    try { if (v === undefined) return localStorage.getItem("eofbc_" + k); localStorage.setItem("eofbc_" + k, v); } catch (e) { return null; }
+}
+function mostrarBienvenida(si) {
+    $("bienvenida").classList.toggle("oculta", !si);
+    $("chkNoBienvenida").checked = pref("noBienvenida") === "1";
+}
+function irA(tab) {
+    document.body.setAttribute("data-tab", tab);
+    document.querySelectorAll("#navInf button").forEach(function (b) { b.classList.toggle("active", b.dataset.go === tab); });
+    pref("tab", tab);
+    window.scrollTo(0, 0);
+    if (tab === "mapa" && map) {
+        setTimeout(function () {
+            if (map.invalidateSize) map.invalidateSize();
+            if (capaTramo && capaTramo.getLatLngs().length > 1) map.fitBounds(capaTramo.getBounds(), { padding: [30, 30], maxZoom: 12 });
+        }, 60);
+    }
+}
+function sincronizarRPM() {
+    var v = $("rpmSelect").value;
+    document.querySelectorAll(".rpm-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.rpm === v); });
+}
+function aplicarSol(on) {
+    document.body.classList.toggle("sol", on);
+    var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", on ? "#ffffff" : "#0f172a");
+    pref("sol", on ? "1" : "0");
+}
+function estadoRed() {
+    var on = navigator.onLine !== false, b = $("netBadge");
+    b.textContent = on ? "EN LÍNEA" : "SIN SEÑAL";
+    b.className = "net " + (on ? "on" : "off");
+}
+function initUX() {
+    $("bvVersion").textContent = "Versión " + APP_VERSION;
+    $("btnIniciar").onclick = function () { mostrarBienvenida(false); };
+    $("chkNoBienvenida").onchange = function () { pref("noBienvenida", this.checked ? "1" : "0"); };
+    $("btnInfo").onclick = function () { mostrarBienvenida(true); };
+    $("btnSol").onclick = function () { aplicarSol(!document.body.classList.contains("sol")); };
+    document.querySelectorAll("#navInf button").forEach(function (b) { b.onclick = function () { irA(b.dataset.go); }; });
+    document.querySelectorAll(".rpm-btn").forEach(function (b) {
+        b.onclick = function () { $("rpmSelect").value = b.dataset.rpm; sincronizarRPM(); calcular(); };
+    });
+    window.addEventListener("online", estadoRed); window.addEventListener("offline", estadoRed);
+    estadoRed();
+    aplicarSol(pref("sol") === "1");
+    irA(pref("tab") || "plan");
+    sincronizarRPM();
+    mostrarBienvenida(pref("noBienvenida") !== "1");
+}
+
 window.addEventListener("load", function () {
     prepararRio();
     llenarSelects();
@@ -895,6 +1065,7 @@ window.addEventListener("load", function () {
     sincronizarUI();
     bindEvents();
     initMap();
+    initUX();
     calcular(true);
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(function () {});
 });
