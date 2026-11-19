@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
-    <script src="ruta_arauca.js"></script>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Calculadora Táctica de Combustible Fluvial - EOFBC</title>
-    
+
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json">
+    <link rel="icon" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Leaflet CSS para el Mapa Táctico -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
@@ -29,230 +29,174 @@
             --text-muted: #94a3b8;
             --border-color: #1e293b;
         }
+        * { box-sizing: border-box; margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        html, body { width: 100%; overflow-x: hidden; background: var(--bg-color); color: var(--text-main); min-height: 100vh; }
+        body { padding: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+        .container { width: 100%; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-        }
-
-        html, body {
-            width: 100%;
-            max-width: 100%;
-            margin: 0;
-            padding: 8px;
-            overflow-x: hidden;
-            box-sizing: border-box;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        /* HEADER */
-        header { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            padding: 16px; 
-            border-radius: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-        }
-
+        header { background: var(--card-bg); border: 1px solid var(--border-color); padding: 14px 16px; border-radius: 16px;
+                 display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
         .title-row { display: flex; align-items: center; gap: 8px; }
-        .dot { width: 10px; height: 10px; background-color: var(--accent-green); border-radius: 50%; display: inline-block; }
-        h1 { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; color: #fff; letter-spacing: 0.5px; }
-        p.subtitle { font-size: 0.75rem; color: var(--text-muted); }
-        .badge-reserva { 
-            background: var(--bg-color); 
-            border: 1px solid var(--border-color); 
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            font-size: 0.7rem; 
-            color: var(--text-muted); 
-            font-family: monospace; 
-            align-self: flex-start; 
-        }
+        .dot { width: 10px; height: 10px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 8px var(--accent-green); }
+        h1 { font-size: 1.05rem; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; }
+        p.subtitle { font-size: .72rem; color: var(--text-muted); margin-top: 2px; }
+        .badge { background: var(--bg-color); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 6px;
+                 font-size: .68rem; color: var(--text-muted); font-family: monospace; white-space: nowrap; }
 
-        /* GRID SYSTEM */
-        .grid { display: flex; flex-direction: column; gap: 16px; }
-        @media (min-width: 768px) {
-            .grid { display: grid; grid-template-columns: 1fr 2fr; }
+        .grid { display: flex; flex-direction: column; gap: 14px; }
+        @media (min-width: 820px) {
+            .grid { display: grid; grid-template-columns: 340px 1fr; grid-template-areas: "param res" "param det"; grid-template-rows: auto 1fr; align-items: start; }
+            #colParam { grid-area: param; } #colRes { grid-area: res; } #colDet { grid-area: det; }
         }
+        .pill.m-only { display: none; }
+        @media (max-width: 480px) { .pill.m-only { display: inline-block; margin-top: 4px; } .col-estado { display: none; } }
+        .col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
-        .card { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            border-radius: 16px; 
-            padding: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-        }
+        .card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px;
+                display: flex; flex-direction: column; gap: 12px; }
+        .card-title { font-size: .78rem; font-weight: 700; color: var(--accent-green-bright); text-transform: uppercase;
+                      border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 
-        .card-title { 
-            font-size: 0.8rem; 
-            font-weight: 700; 
-            color: var(--accent-green-bright); 
-            text-transform: uppercase; 
-            border-bottom: 1px solid var(--border-color); 
-            padding-bottom: 6px; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* CONTROLES E INPUTS */
         .field-group { display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 0.7rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; }
+        label, .lbl { font-size: .68rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; }
         input, select, button { -webkit-appearance: none; appearance: none; outline: none; }
-        input, select { 
-            background: var(--bg-color); 
-            border: 1px solid var(--border-color); 
-            color: #fff; 
-            padding: 12px; 
-            border-radius: 10px; 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            width: 100%; 
-        }
+        input, select { background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; padding: 11px;
+                        border-radius: 10px; font-size: .9rem; font-weight: 600; width: 100%; }
         input:focus, select:focus { border-color: var(--accent-green); }
+        input[type=range] { padding: 0; height: 28px; background: transparent; border: none; }
+        input[type=range]::-webkit-slider-runnable-track { height: 6px; background: var(--border-color); border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-cyan); margin-top: -7px; }
+        input[type=range]::-moz-range-track { height: 6px; background: var(--border-color); border-radius: 3px; }
+        input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--accent-cyan); border: none; }
+        .flex-row { display: flex; gap: 8px; align-items: center; }
+        .row-between { display: flex; justify-content: space-between; align-items: center; }
 
-        .flex-row { display: flex; gap: 8px; }
-
-        .toggle-group { 
-            display: flex; 
-            background: var(--bg-color); 
-            border: 1px solid var(--border-color); 
-            padding: 3px; 
-            border-radius: 10px; 
-            gap: 4px; 
-        }
-        .btn-toggle { 
-            flex: 1; 
-            padding: 10px; 
-            border: none; 
-            background: transparent; 
-            color: var(--text-muted); 
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            text-align: center; 
-        }
+        .toggle-group { display: flex; background: var(--bg-color); border: 1px solid var(--border-color); padding: 3px; border-radius: 10px; gap: 4px; }
+        .btn-toggle { flex: 1; padding: 9px 6px; border: none; background: transparent; color: var(--text-muted); font-size: .72rem;
+                      font-weight: 700; border-radius: 8px; cursor: pointer; }
         .btn-toggle.active { background: #059669; color: #fff; }
+        .btn { border: 1px solid var(--border-color); background: var(--bg-color); color: #e2e8f0; padding: 10px 12px; border-radius: 10px;
+               font-size: .75rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .btn:active { transform: scale(.98); }
+        .btn-primary { background: #059669; border-color: #059669; color: #fff; }
+        .btn-icon { padding: 10px; width: 44px; flex: none; }
 
-        /* TARJETAS METRICAS */
-        .summary-grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 8px; 
-            width: 100%;
-        }
-        @media (min-width: 480px) { 
-            .summary-grid { grid-template-columns: repeat(4, 1fr); } 
-        }
+        .hint { font-size: .66rem; color: var(--text-muted); line-height: 1.4; }
+        .auto-tag { font-size: .6rem; color: var(--accent-cyan); font-weight: 700; }
 
-        .sum-card { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            padding: 12px; 
-            border-radius: 12px; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        .sum-title { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        .sum-val { font-size: 1.1rem; font-weight: 900; color: var(--accent-green-bright); font-family: monospace; margin: 2px 0; }
-        .sum-sub { font-size: 0.65rem; color: #64748b; }
+        /* Estado de misión */
+        .status { border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: center; border: 1px solid; }
+        .status .ico { font-size: 1.4rem; line-height: 1; }
+        .status .st-title { font-weight: 900; font-size: .85rem; text-transform: uppercase; letter-spacing: .4px; }
+        .status .st-sub { font-size: .72rem; margin-top: 2px; opacity: .9; }
+        .st-ok   { background: #052e22; border-color: #065f46; color: #6ee7b7; }
+        .st-warn { background: #3a2a05; border-color: #92400e; color: #fcd34d; }
+        .st-bad  { background: #3b0a14; border-color: #9f1239; color: #fda4af; }
 
-        /* TABLA DE RESULTADOS */
-        .table-container { 
-            width: 100%; 
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-            background-color: #0b1329;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; text-align: left; background-color: #0b1329; }
-        th { 
-            color: var(--text-muted); 
-            border-bottom: 1px solid var(--border-color); 
-            padding: 8px 4px; 
-            text-transform: uppercase; 
-            font-family: monospace; 
-            font-size: 0.65rem; 
-            background-color: #0b1329;
-        }
-        td { padding: 10px 4px; border-bottom: 1px solid var(--border-color); font-family: monospace; background-color: #0b1329; }
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        @media (min-width: 560px) { .summary-grid { grid-template-columns: repeat(4, 1fr); } }
+        .sum-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 11px; border-radius: 12px; display: flex; flex-direction: column; min-width: 0; }
+        .sum-title { font-size: .62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .sum-val { font-size: 1.05rem; font-weight: 900; color: var(--accent-green-bright); font-family: monospace; margin: 2px 0; overflow-wrap: anywhere; }
+        .sum-sub { font-size: .63rem; color: #64748b; }
 
-        .progress-bar { 
-            width: 100%; 
-            background: var(--bg-color); 
-            border-radius: 4px; 
-            height: 6px; 
-            overflow: hidden; 
-            margin-top: 4px; 
-            border: 1px solid var(--border-color); 
-        }
-        .progress-fill { height: 100%; background: var(--accent-green); }
+        #map { width: 100%; height: 340px; border-radius: 12px; border: 1px solid var(--border-color); z-index: 1; background: #0b1329; }
+        .map-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: .62rem; color: var(--text-muted); }
+        .map-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); }
+        .leaflet-popup-content { font-family: monospace; font-size: .75rem; margin: 10px 12px; }
+        .pop-btns { display: flex; gap: 6px; margin-top: 8px; }
+        .pop-btns button { flex: 1; padding: 6px 8px; border-radius: 6px; border: none; font-weight: 700; font-size: .68rem; cursor: pointer; }
+        .pb-o { background: #1d4ed8; color: #fff; } .pb-d { background: #be123c; color: #fff; }
+        .leaflet-tooltip.lbl-pt { background: rgba(2,6,23,.85); color: #e2e8f0; border: 1px solid var(--border-color); font-size: .62rem; font-weight: 700; padding: 1px 5px; box-shadow: none; }
+        .leaflet-tooltip.lbl-pt::before { display: none; }
+
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color); background: #0b1329; }
+        table { width: 100%; border-collapse: collapse; font-size: .74rem; text-align: left; }
+        th { color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding: 8px 6px; text-transform: uppercase; font-family: monospace; font-size: .62rem; white-space: nowrap; }
+        td { padding: 9px 6px; border-bottom: 1px solid var(--border-color); font-family: monospace; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        .c { text-align: center; } .r { text-align: right; }
+        .muted { font-size: .6rem; color: var(--text-muted); }
+        .progress-bar { width: 100%; min-width: 60px; background: var(--bg-color); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 4px; border: 1px solid var(--border-color); position: relative; }
+        .progress-fill { height: 100%; }
+        .progress-mark { position: absolute; top: -1px; bottom: -1px; left: 70%; width: 2px; background: var(--accent-amber); }
+        .pill { display: inline-block; font-size: .58rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: .3px; }
+        .pill-ok { background: #064e3b; color: #6ee7b7; } .pill-warn { background: #78350f; color: #fde68a; } .pill-bad { background: #881337; color: #fecdd3; }
         .hidden { display: none !important; }
+        .perf-table input { padding: 6px; font-size: .78rem; border-radius: 6px; text-align: center; }
+        .perf-table td, .perf-table th { padding: 4px; font-family: inherit; }
+        .perf-title { font-size: .7rem; font-weight: 800; color: #e2e8f0; margin-bottom: 4px; }
 
-        /* ESTILOS DEL MAPA */
-        #map {
-            width: 100%;
-            height: 320px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            z-index: 1;
-        }
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            font-family: monospace;
-            font-size: 0.75rem;
-        }
+        .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #059669; color: #fff; padding: 10px 16px; border-radius: 10px;
+                 font-size: .8rem; font-weight: 700; z-index: 1000; opacity: 0; transition: opacity .2s; pointer-events: none; }
+        .toast.show { opacity: 1; }
+        details.notes summary { cursor: pointer; font-size: .7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+        details.notes div { font-size: .68rem; color: var(--text-muted); line-height: 1.5; margin-top: 8px; }
 
         @media (max-width: 480px) {
-            th, td { padding: 6px 2px !important; font-size: 0.65rem !important; }
-            .sum-val { font-size: 0.95rem !important; }
-            #map { height: 260px; }
+            th, td { padding: 6px 3px; font-size: .64rem; }
+            .sum-val { font-size: .92rem; }
+            #map { height: 280px; }
         }
     </style>
 </head>
 <body>
+<div class="container">
 
-    <div class="container">
-        
-        <!-- ENCABEZADO -->
-        <header>
-            <div class="title-row">
-                <span class="dot"></span>
-                <h1>Calculadora Táctica EOFBC</h1>
-            </div>
+    <header>
+        <div>
+            <div class="title-row"><span class="dot"></span><h1>Calculadora Táctica EOFBC</h1></div>
             <p class="subtitle">Batallón Fluvial de Infantería de Marina — Control Operativo 52-1 / 52-2</p>
-            <div class="badge-reserva">MARGEN SEGURIDAD: <strong style="color: var(--accent-amber);">30% RESERVA</strong></div>
-        </header>
+        </div>
+        <div class="badge">MARGEN SEGURIDAD: <strong style="color: var(--accent-amber);">30% RESERVA</strong></div>
+    </header>
 
-        <div class="grid">
-            
-            <!-- CONTROLES Y PARÁMETROS -->
+    <div class="grid">
+
+        <!-- ===================== RESUMEN (arriba en celular) ===================== -->
+        <div class="col" id="colRes">
+            <div id="statusBox" class="status st-ok">
+                <div class="ico" id="statusIco">✔</div>
+                <div>
+                    <div class="st-title" id="statusTitle">Misión viable</div>
+                    <div class="st-sub" id="statusSub"></div>
+                </div>
+            </div>
+
+            <div class="summary-grid">
+                <div class="sum-card">
+                    <span class="sum-title">Comb. requerido</span>
+                    <span id="cardConsumo" class="sum-val">0 gal</span>
+                    <span id="cardDistEquiv" class="sum-sub"></span>
+                </div>
+                <div class="sum-card">
+                    <span class="sum-title">Costo misión</span>
+                    <span id="cardCostoTotal" class="sum-val" style="color:#a7f3d0;">$0</span>
+                    <span id="cardPorcentaje" class="sum-sub"></span>
+                </div>
+                <div class="sum-card">
+                    <span class="sum-title">Comb. restante</span>
+                    <span id="cardRestante" class="sum-val" style="color:var(--accent-cyan);">0 gal</span>
+                    <span id="cardMinimo" class="sum-sub"></span>
+                </div>
+                <div class="sum-card">
+                    <span class="sum-title">Autonomía (30%)</span>
+                    <span id="cardAutonomiaReserva" class="sum-val" style="color:var(--accent-amber);">0 MN</span>
+                    <span id="cardAutonomiaMax" class="sum-sub"></span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===================== PARÁMETROS ===================== -->
+        <div class="col" id="colParam">
             <div class="card">
-                <div class="card-title">Parámetros de Navegación</div>
-                
+                <div class="card-title">Fuerza</div>
+
                 <div class="field-group">
-                    <label>Modo de Cálculo:</label>
+                    <span class="lbl">Modo de cálculo</span>
                     <div class="toggle-group">
                         <button type="button" id="btnModoGrupo" class="btn-toggle active">Consolidado</button>
                         <button type="button" id="btnModoInd" class="btn-toggle">Individual</button>
@@ -260,22 +204,51 @@
                 </div>
 
                 <div class="field-group">
-                    <label for="unidadSelect">Unidad Operativa:</label>
-                    <select id="unidadSelect">
-                        <option value="EOFBC_52_2">EOFBC 52-2 (4 Botes Bimotor)</option>
-                        <option value="EOFBC_52_1">EOFBC 52-1 (4 Botes Bimotor)</option>
-                    </select>
+                    <label for="unidadSelect">Unidad operativa</label>
+                    <select id="unidadSelect"></select>
                 </div>
 
                 <div id="containerBoteInd" class="field-group hidden">
-                    <label for="boteIndSelect">Seleccionar Bote:</label>
+                    <label for="boteIndSelect">Bote</label>
                     <select id="boteIndSelect"></select>
                 </div>
 
                 <div class="field-group">
-                    <label for="distanciaInput">Distancia a Navegar:</label>
+                    <div class="row-between"><label for="nivelInput">Combustible a bordo</label><span id="nivelVal" class="auto-tag">100%</span></div>
+                    <input type="range" id="nivelInput" min="10" max="100" step="5" value="100">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Trayecto</div>
+
+                <div class="field-group">
+                    <span class="lbl">Distancia</span>
+                    <div class="toggle-group">
+                        <button type="button" id="btnRuta" class="btn-toggle active">Por ruta del río</button>
+                        <button type="button" id="btnManual" class="btn-toggle">Manual</button>
+                    </div>
+                </div>
+
+                <div id="boxRuta" class="field-group" style="gap:10px;">
+                    <div class="field-group">
+                        <label for="origenSelect">Origen</label>
+                        <select id="origenSelect"></select>
+                    </div>
                     <div class="flex-row">
-                        <input type="number" id="distanciaInput" value="50" min="0.1" step="0.1" inputmode="decimal">
+                        <div class="field-group" style="flex:1;">
+                            <label for="destinoSelect">Destino</label>
+                            <select id="destinoSelect"></select>
+                        </div>
+                        <button type="button" id="btnInvertir" class="btn btn-icon" title="Invertir origen y destino" style="align-self:flex-end;">⇅</button>
+                    </div>
+                    <p class="hint">También puedes tocar un punto en el mapa para elegirlo como origen o destino.</p>
+                </div>
+
+                <div id="boxManual" class="field-group hidden">
+                    <label for="distanciaInput">Distancia a navegar (un sentido)</label>
+                    <div class="flex-row">
+                        <input type="number" id="distanciaInput" value="50" min="0" step="0.1" inputmode="decimal">
                         <select id="unidadDistSelect" style="width: 90px;">
                             <option value="MN">MN</option>
                             <option value="KM">KM</option>
@@ -285,593 +258,646 @@
                 </div>
 
                 <div class="field-group">
-                    <label for="corrienteSelect">Sentido de Navegación (Corriente):</label>
-                    <select id="corrienteSelect">
-                        <option value="1.00" selected>Aguas Calmas / Neutro</option>
-                        <option value="1.20">Contra Corriente (Aguas Arriba +20%)</option>
-                        <option value="0.85">A Favor de Corriente (Aguas Abajo -15%)</option>
+                    <div class="row-between"><label for="sentidoSelect">Sentido de la ida</label><span id="corrienteAuto" class="auto-tag"></span></div>
+                    <select id="sentidoSelect">
+                        <option value="0">Aguas calmas / sin corriente</option>
+                        <option value="-1">Aguas arriba (contra corriente)</option>
+                        <option value="1">Aguas abajo (a favor)</option>
                     </select>
                 </div>
 
                 <div class="field-group">
-                    <label for="rpmSelect">Régimen de Marcha (RPM):</label>
-                    <select id="rpmSelect">
-                        <option value="2500">2.500 RPM (Velocidad Mínima / Patrullaje)</option>
-                        <option value="4000">4.000 RPM (Crucero Económico)</option>
-                        <option value="4800" selected>4.800 RPM (Crucero Táctico)</option>
-                        <option value="5500">5.500 RPM (Máximas Revoluciones / Interdicción)</option>
-                    </select>
+                    <label for="corrienteKn">Velocidad de la corriente (nudos)</label>
+                    <div class="flex-row">
+                        <input type="number" id="corrienteKn" value="1.5" min="0" max="6" step="0.1" inputmode="decimal">
+                        <select id="temporadaSelect" style="width: 150px;">
+                            <option value="">Temporada…</option>
+                            <option value="2.5">Aguas altas</option>
+                            <option value="1.5">Aguas medias</option>
+                            <option value="0.8">Aguas bajas</option>
+                        </select>
+                    </div>
+                    <p class="hint">Valores de temporada provisionales hasta recibir el formato de los comandantes.</p>
                 </div>
 
                 <div class="field-group">
-                    <label for="precioGalonInput">Precio Galón (COP):</label>
-                    <input type="number" id="precioGalonInput" value="16000" min="0" step="100" inputmode="numeric">
-                </div>
-
-                <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.65rem; color: var(--text-muted);">
-                    <div style="font-weight: bold; color: #cbd5e1; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 2px;">Consumo Base Bimotor Combinado:</div>
-                    <div style="display:flex; justify-content:space-between;"><span>2x Mercury 90 HP:</span> <strong style="color:var(--accent-green-bright);">0.76 Gln/MN</strong></div>
-                    <div style="display:flex; justify-content:space-between;"><span>2x Mercury 115 HP:</span> <strong style="color:var(--accent-green-bright);">0.80 Gln/MN</strong></div>
-                    <div style="display:flex; justify-content:space-between;"><span>2x Mercury 200 HP:</span> <strong style="color:var(--accent-green-bright);">1.70 Gln/MN</strong></div>
+                    <span class="lbl">Tipo de misión</span>
+                    <div class="toggle-group">
+                        <button type="button" id="btnSoloIda" class="btn-toggle">Solo ida</button>
+                        <button type="button" id="btnIdaVuelta" class="btn-toggle active">Ida y regreso</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- RESULTADOS, MAPA Y DESGLOSE -->
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                
-                <div class="summary-grid">
-                    <div class="sum-card">
-                        <span class="sum-title">Comb. Req.</span>
-                        <span id="cardConsumo" class="sum-val">0 Gln</span>
-                        <span id="cardDistEquiv" class="sum-sub">Equiv: 0 MN</span>
-                    </div>
-
-                    <div class="sum-card">
-                        <span class="sum-title">Costo Misión</span>
-                        <span id="cardCostoTotal" class="sum-val" style="color:#a7f3d0; font-size:0.95rem;">$0</span>
-                        <span id="cardPorcentaje" class="sum-sub">Gasto: 0%</span>
-                    </div>
-
-                    <div class="sum-card">
-                        <span class="sum-title">Comb. Restante</span>
-                        <span id="cardRestante" class="sum-val" style="color:var(--accent-cyan);">0 Gln</span>
-                        <span class="sum-sub">En tanques</span>
-                    </div>
-
-                    <div class="sum-card">
-                        <span class="sum-title">Autonomía (30%)</span>
-                        <span id="cardAutonomiaReserva" class="sum-val" style="color:var(--accent-amber);">0 MN</span>
-                        <span id="cardAutonomiaMax" class="sum-sub">Max: 0 MN</span>
-                    </div>
+            <div class="card">
+                <div class="card-title">Operación</div>
+                <div class="field-group">
+                    <label for="rpmSelect">Régimen de marcha (RPM)</label>
+                    <select id="rpmSelect">
+                        <option value="2500">2.500 RPM — Patrullaje</option>
+                        <option value="4000">4.000 RPM — Crucero económico</option>
+                        <option value="4800" selected>4.800 RPM — Crucero táctico</option>
+                        <option value="5500">5.500 RPM — Interdicción</option>
+                    </select>
                 </div>
-
-                <!-- SECCIÓN MAPA TÁCTICO -->
-                <div class="card">
-                    <div class="card-title">
-                        <span>Mapa Táctico — Río Arauca</span>
-                        <span style="font-size: 0.6rem; color: var(--accent-cyan);">TRAYECTO COLOMBIANO</span>
-                    </div>
-                    <div id="map"></div>
+                <div class="field-group">
+                    <label for="precioGalonInput">Precio galón (COP)</label>
+                    <input type="number" id="precioGalonInput" value="16000" min="0" step="100" inputmode="numeric">
                 </div>
-
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
-                        <h3 id="tituloDetalle" style="font-size: 0.75rem; font-weight: 700; color: #fff; text-transform: uppercase;">Desglose de Flotilla</h3>
-                        <span id="badgeModo" style="font-size: 0.6rem; background: #064e3b; color: var(--accent-green-bright); padding: 2px 6px; border-radius: 4px; font-weight: 700;">CONSOLIDADO</span>
+                <details class="notes">
+                    <summary>Cómo calcula</summary>
+                    <div>
+                        Cada tipo de bote tiene, por RPM, un consumo (gal/h, dos motores) y una velocidad en aguas calmas (nudos).<br>
+                        Velocidad real = velocidad del bote ± corriente. Consumo por milla = gal/h ÷ velocidad real.<br>
+                        Combustible = distancia × consumo por milla, en cada sentido. Tiempo = distancia ÷ velocidad real.<br>
+                        Reserva: el 30% del combustible a bordo no se planifica para la misión.<br>
+                        El río corre de occidente a oriente (Puerto Contreras → Puerto Colombia).<br>
+                        Autonomía de la flotilla = la del bote con menor alcance (navegan juntos).
                     </div>
+                </details>
+            </div>
 
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Bote / Motor</th>
-                                    <th style="text-align: center;">Cap.</th>
-                                    <th style="text-align: center;">Consumo</th>
-                                    <th style="text-align: center;">Costo (COP)</th>
-                                    <th style="text-align: right;">Autonomía</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaCuerpo"></tbody>
-                        </table>
+            <div class="card">
+                <details class="notes" id="detFlota">
+                    <summary style="color:var(--accent-green-bright);">Datos de la flota por RPM <span class="pill pill-warn" style="margin-left:6px;">PROVISIONAL</span></summary>
+                    <div>
+                        Consumo de fábrica Mercury a máximas RPM, curva típica de motor 4 tiempos y velocidades estimadas.
+                        Reemplace con lo que reporten los comandantes: los cambios se guardan en este dispositivo.
                     </div>
+                    <div id="editorPerfiles" style="margin-top:10px; display:flex; flex-direction:column; gap:12px;"></div>
+                    <div class="flex-row" style="margin-top:10px; justify-content:flex-end;">
+                        <button type="button" id="btnRestaurar" class="btn">Restaurar valores de referencia</button>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- ===================== MAPA Y DETALLE ===================== -->
+        <div class="col" id="colDet">
+            <div class="card">
+                <div class="card-title">
+                    <span>Mapa táctico — Río Arauca</span>
+                    <span id="mapInfo" style="font-size:.62rem; color: var(--accent-cyan);">TRAYECTO COLOMBIANO</span>
                 </div>
+                <div id="map"></div>
+                <div class="map-legend">
+                    <span><i style="background:#10b981"></i>Base</span>
+                    <span><i style="background:#3b82f6"></i>Punto de control</span>
+                    <span><i style="background:#fbbf24"></i>PCF Arauquita</span>
+                    <span><i style="background:#ef4444"></i>Fin del área</span>
+                    <span><i style="background:#f97316"></i>Límite de autonomía</span>
+                </div>
+            </div>
 
+            <div class="card">
+                <div class="row-between" style="border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+                    <h3 id="tituloDetalle" style="font-size:.74rem; font-weight:700; text-transform:uppercase;">Desglose de flotilla</h3>
+                    <span id="badgeModo" class="pill pill-ok">CONSOLIDADO</span>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bote / Motor</th>
+                                <th class="c">A bordo</th>
+                                <th class="c">Consumo</th>
+                                <th class="c">Costo</th>
+                                <th class="r">Autonomía</th>
+                                <th class="c col-estado">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCuerpo"></tbody>
+                    </table>
+                </div>
+                <div class="flex-row" style="justify-content:flex-end; flex-wrap:wrap;">
+                    <button type="button" id="btnCopiar" class="btn">Copiar informe</button>
+                    <button type="button" id="btnCompartir" class="btn btn-primary">Compartir</button>
+                </div>
             </div>
         </div>
     </div>
+</div>
+<div id="toast" class="toast"></div>
 
-    <!-- Leaflet JS para el Mapa Táctico -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="ruta_arauca.js"></script>
+<script>
+// =====================================================================
+// CONFIGURACIÓN — editar aquí cuando cambie la flota o los consumos
+// =====================================================================
+var RESERVA = 0.30;          // 30% del combustible a bordo no se planifica
+var MN_A_KM = 1.852;
 
-    <script>
-        var unidadesData = {
-            "EOFBC_52_2": {
-                nombre: "EOFBC 52-2",
-                botes: [
-                    { id: "522_1", nombre: "Bote 01", motor: "2x 115 HP", hp: 115, cap: 120, cons: 0.80 },
-                    { id: "522_2", nombre: "Bote 02", motor: "2x 90 HP",  hp: 90,  cap: 100, cons: 0.76 },
-                    { id: "522_3", nombre: "Bote 03", motor: "2x 90 HP",  hp: 90,  cap: 100, cons: 0.76 },
-                    { id: "522_4", nombre: "Bote 04", motor: "2x 200 HP", hp: 200, cap: 153, cons: 1.70 }
-                ]
-            },
-            "EOFBC_52_1": {
-                nombre: "EOFBC 52-1",
-                botes: [
-                    { id: "521_1", nombre: "Bote 01", motor: "2x 90 HP",  hp: 90,  cap: 120, cons: 0.76 },
-                    { id: "521_2", nombre: "Bote 02", motor: "2x 90 HP",  hp: 90,  cap: 120, cons: 0.76 },
-                    { id: "521_3", nombre: "Bote 03", motor: "2x 90 HP",  hp: 90,  cap: 120, cons: 0.76 },
-                    { id: "521_4", nombre: "Bote 04", motor: "2x 200 HP", hp: 200, cap: 220, cons: 1.70 }
-                ]
-            }
-        };
+var unidadesData = {
+    "EOFBC_52_2": {
+        nombre: "EOFBC 52-2",
+        botes: [
+            { nombre: "Bote 01", motor: "2x 115 HP", perfil: "115", cap: 120 },
+            { nombre: "Bote 02", motor: "2x 90 HP",  perfil: "90",  cap: 100 },
+            { nombre: "Bote 03", motor: "2x 90 HP",  perfil: "90",  cap: 100 },
+            { nombre: "Bote 04", motor: "2x 200 HP", perfil: "200", cap: 153 }
+        ]
+    },
+    "EOFBC_52_1": {
+        nombre: "EOFBC 52-1",
+        botes: [
+            { nombre: "Bote 01", motor: "2x 90 HP",  perfil: "90",  cap: 120 },
+            { nombre: "Bote 02", motor: "2x 90 HP",  perfil: "90",  cap: 120 },
+            { nombre: "Bote 03", motor: "2x 90 HP",  perfil: "90",  cap: 120 },
+            { nombre: "Bote 04", motor: "2x 200 HP", perfil: "200", cap: 220 }
+        ]
+    }
+};
 
-        var modoActual = 'grupo';
-        var map, rioLayer;
+// Rendimiento por tipo de bote y RPM: gph = galones/hora de los DOS motores, kn = nudos en aguas calmas.
+// PROVISIONAL. Consumo máximo de fábrica por motor (L/h): 90 HP 37,9 · 115 HP 40,1 · 200 HP 75,2,
+// repartido por RPM con una curva típica de 4 tiempos. Velocidades estimadas: reemplazar con medición.
+var RPMS = ["2500", "4000", "4800", "5500"];
+var PERFILES_REF = {
+    "90":  { nombre: "2× Mercury 90 HP",  d: { "2500": { gph: 3.6, kn: 7 },   "4000": { gph: 8.4,  kn: 13 }, "4800": { gph: 12.4, kn: 17 }, "5500": { gph: 17.0, kn: 21 } } },
+    "115": { nombre: "2× Mercury 115 HP", d: { "2500": { gph: 3.8, kn: 7.5 }, "4000": { gph: 8.9,  kn: 14 }, "4800": { gph: 13.1, kn: 18 }, "5500": { gph: 18.0, kn: 22 } } },
+    "200": { nombre: "2× Mercury 200 HP", d: { "2500": { gph: 4.8, kn: 8 },   "4000": { gph: 13.1, kn: 18 }, "4800": { gph: 19.9, kn: 26 }, "5500": { gph: 27.8, kn: 32 } } }
+};
+var perfiles = JSON.parse(JSON.stringify(PERFILES_REF));
 
-        // Puntos de referencia sobre el curso del Río Arauca en Colombia
-      var puntosRioArauca = rutaRioArauca;
+// Puntos de control, de occidente (aguas arriba) a oriente (aguas abajo)
+var puntosControl = [
+    { n: "Puerto Contreras",  lat: 7.051557, lng: -71.823893, t: "fin",  d: "Inicio del área fluvial" },
+    { n: "Puerto Lleras",     lat: 7.031526, lng: -71.698908 },
+    { n: "Bocas de Juju",     lat: 7.033046, lng: -71.592333 },
+    { n: "Peralonso",         lat: 7.008845, lng: -71.466136 },
+    { n: "Arauquita",         lat: 7.029725, lng: -71.432720, t: "pcf", d: "Puesto de Control Fluvial" },
+    { n: "El Troncal",        lat: 7.021171, lng: -71.383579 },
+    { n: "Carretero",         lat: 7.018370, lng: -71.322601 },
+    { n: "Bocas de Gaviota",  lat: 7.010803, lng: -71.240196 },
+    { n: "La Reinera",        lat: 6.949453, lng: -71.188023 },
+    { n: "Los Angelitos",     lat: 6.992315, lng: -71.113329 },
+    { n: "La Yuca",           lat: 6.976637, lng: -71.015815 },
+    { n: "Picacho",           lat: 7.002735, lng: -70.974450 },
+    { n: "Los Mangos",        lat: 7.045109, lng: -70.899987 },
+    { n: "La Payara",         lat: 7.056161, lng: -70.863581 },
+    { n: "El Torno",          lat: 7.075120, lng: -70.855487 },
+    { n: "BFLIM52 / PFA 20 de Julio", lat: 7.087612, lng: -70.769784, t: "base", d: "Base principal" },
+    { n: "Caño Verde",        lat: 7.104574, lng: -70.682069 },
+    { n: "Clarinetero",       lat: 7.077160, lng: -70.643742 },
+    { n: "El Manguito",       lat: 7.063755, lng: -70.607084 },
+    { n: "La Lorena",         lat: 7.068812, lng: -70.585603 },
+    { n: "La Estrellita",     lat: 7.077219, lng: -70.562351 },
+    { n: "El Coco",           lat: 7.003234, lng: -70.449055 },
+    { n: "El Picure",         lat: 6.981381, lng: -70.397358 },
+    { n: "Caracol",           lat: 6.939144, lng: -70.275413 },
+    { n: "Puerto Colombia",   lat: 6.977519, lng: -70.118000, t: "fin", d: "Fin del área fluvial" }
+];
+var IDX_BASE = 15;
 
-        function initMap() {
-            // Inicializar mapa centrado en el departamento de Arauca sobre el Río
-            map = L.map('map', {
-                attributionControl: false
-            }).setView([7.0886, -70.7591], 8);
+// =====================================================================
+// GEOMETRÍA DEL RÍO
+// =====================================================================
+var ruta = (typeof rutaRioArauca !== "undefined") ? rutaRioArauca : [];
+var acumMN = [0];   // distancia acumulada sobre el río, en MN
 
-            // Capa Satelital ESRI (Ideal para navegación fluvial)
-            var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 17
+function distMN(a, b) {
+    var R = 3440.065, rad = Math.PI / 180;
+    var dLat = (b[0] - a[0]) * rad, dLng = (b[1] - a[1]) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function prepararRio() {
+    for (var i = 1; i < ruta.length; i++) acumMN.push(acumMN[i - 1] + distMN(ruta[i - 1], ruta[i]));
+    // Proyectar cada punto de control al vértice del río más cercano
+    puntosControl.forEach(function (p) {
+        var best = 0, bestD = Infinity;
+        for (var i = 0; i < ruta.length; i++) {
+            var d = distMN([p.lat, p.lng], ruta[i]);
+            if (d < bestD) { bestD = d; best = i; }
+        }
+        p.idx = best;
+        p.km = acumMN[best];
+    });
+}
+
+// Punto del río a una distancia (MN) desde un índice, en una dirección (+1 abajo / -1 arriba)
+function puntoADistancia(idxInicio, dir, mn) {
+    var objetivo = acumMN[idxInicio] + dir * mn;
+    if (objetivo <= 0) return { pt: ruta[0], idx: 0, limite: true };
+    if (objetivo >= acumMN[acumMN.length - 1]) return { pt: ruta[ruta.length - 1], idx: ruta.length - 1, limite: true };
+    for (var i = 1; i < acumMN.length; i++) {
+        if (acumMN[i] >= objetivo) {
+            var f = (objetivo - acumMN[i - 1]) / (acumMN[i] - acumMN[i - 1]);
+            return { pt: [ruta[i - 1][0] + f * (ruta[i][0] - ruta[i - 1][0]), ruta[i - 1][1] + f * (ruta[i][1] - ruta[i - 1][1])], idx: i, limite: false };
+        }
+    }
+}
+
+// =====================================================================
+// ESTADO
+// =====================================================================
+var estado = {
+    modo: "grupo", dist: "ruta", idaVuelta: true, corrienteManual: false,
+    origen: IDX_BASE, destino: 4
+};
+var $ = function (id) { return document.getElementById(id); };
+var map, capaTramo, capaLimite, marcadores = [];
+
+// =====================================================================
+// MAPA
+// =====================================================================
+function colorPunto(p) {
+    return p.t === "base" ? "#10b981" : p.t === "pcf" ? "#fbbf24" : p.t === "fin" ? "#ef4444" : "#3b82f6";
+}
+
+function initMap() {
+    if (typeof L === "undefined") {
+        $("map").innerHTML = '<div style="padding:20px;font-size:.75rem;color:#94a3b8;">Mapa no disponible sin conexión. El cálculo sigue funcionando.</div>';
+        return;
+    }
+    map = L.map("map", { attributionControl: false, zoomSnap: 0.5 });
+    var esriSat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 18 });
+    var osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 });
+    esriSat.addTo(map);
+    L.control.layers({ "Satelital": esriSat, "Mapa": osm }, null, { position: "topright" }).addTo(map);
+    L.control.scale({ imperial: false, position: "bottomleft" }).addTo(map);
+
+    L.polyline(ruta, { color: "#22d3ee", weight: 3, opacity: 0.45, dashArray: "6, 6" }).addTo(map);
+    capaTramo = L.polyline([], { color: "#22d3ee", weight: 6, opacity: 0.95 }).addTo(map);
+    capaLimite = L.layerGroup().addTo(map);
+
+    puntosControl.forEach(function (p, i) {
+        var esp = p.t === "base" || p.t === "fin";
+        var m = L.circleMarker([p.lat, p.lng], {
+            radius: esp ? 7 : 5.5, color: "#fff", weight: 1.5, fillColor: colorPunto(p), fillOpacity: 0.95
+        }).addTo(map);
+        m.bindPopup(
+            "<b>" + p.n + "</b><br>" + (p.d || "Punto de control fluvial") +
+            "<br><span style='color:#94a3b8'>Km " + (p.km * MN_A_KM).toFixed(1) + " del río (MN " + p.km.toFixed(1) + ")</span>" +
+            "<div class='pop-btns'><button class='pb-o' onclick='elegirPunto(" + i + ",\"o\")'>Origen</button>" +
+            "<button class='pb-d' onclick='elegirPunto(" + i + ",\"d\")'>Destino</button></div>"
+        );
+        marcadores.push(m);
+    });
+    map.fitBounds(L.polyline(ruta).getBounds(), { padding: [10, 10] });
+}
+
+window.elegirPunto = function (i, cual) {
+    if (cual === "o") estado.origen = i; else estado.destino = i;
+    estado.dist = "ruta";
+    estado.corrienteManual = false;
+    if (map) map.closePopup();
+    sincronizarUI();
+    calcular(true);
+};
+
+function actualizarMapa(r, ajustar) {
+    if (!map) return;
+    capaLimite.clearLayers();
+    marcadores.forEach(function (m, i) {
+        var activo = estado.dist === "ruta" && (i === estado.origen || i === estado.destino);
+        m.setStyle({ weight: activo ? 3 : 1.5, color: activo ? (i === estado.origen ? "#60a5fa" : "#fb7185") : "#fff" });
+        m.unbindTooltip();
+        if (activo) m.bindTooltip(i === estado.origen ? "ORIGEN" : "DESTINO", { permanent: true, direction: "top", className: "lbl-pt", offset: [0, -6] }).openTooltip();
+    });
+
+    if (estado.dist !== "ruta") { capaTramo.setLatLngs([]); $("mapInfo").textContent = "TRAYECTO COLOMBIANO"; return; }
+
+    var a = puntosControl[estado.origen].idx, b = puntosControl[estado.destino].idx;
+    capaTramo.setLatLngs(ruta.slice(Math.min(a, b), Math.max(a, b) + 1));
+    $("mapInfo").textContent = fmt(r.distMN, 1) + " MN · " + fmt(r.distMN * MN_A_KM, 1) + " KM";
+
+    // Límite de autonomía desde el origen en la dirección del destino
+    if (r.autoResMN > 0 && a !== b) {
+        var dir = b > a ? 1 : -1;
+        var lim = puntoADistancia(a, dir, estado.idaVuelta ? r.radioAccionMN : r.autoResMN);
+        if (lim && !lim.limite) {
+            L.circleMarker(lim.pt, { radius: 7, color: "#f97316", weight: 3, fillColor: "#f97316", fillOpacity: 0.35 })
+                .bindTooltip(estado.idaVuelta ? "Radio de acción" : "Límite autonomía", { permanent: true, direction: "bottom", className: "lbl-pt", offset: [0, 6] })
+                .addTo(capaLimite);
+        }
+    }
+    if (ajustar && capaTramo.getLatLngs().length > 1) map.fitBounds(capaTramo.getBounds(), { padding: [30, 30], maxZoom: 12 });
+}
+
+// =====================================================================
+// CÁLCULO
+// =====================================================================
+// Rendimiento de un tramo: sentido +1 aguas abajo, -1 aguas arriba, 0 calma
+function tramo(b, rpm, sentido, corrKn) {
+    var p = perfiles[b.perfil].d[rpm];
+    var sog = p.kn + sentido * corrKn;            // velocidad sobre el fondo
+    if (sog < 0.5) return { sog: sog, galMN: Infinity, kn: p.kn, gph: p.gph };
+    return { sog: sog, galMN: p.gph / sog, kn: p.kn, gph: p.gph };
+}
+function fmtHoras(h) {
+    if (!isFinite(h)) return "—";
+    var m = Math.round(h * 60);
+    return Math.floor(m / 60) + " h " + ("0" + (m % 60)).slice(-2) + " min";
+}
+
+function fmtCOP(v) { if (!isFinite(v)) return "—"; return "$" + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+function fmt(v, d) { if (!isFinite(v)) return "—"; return v.toLocaleString("es-CO", { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function num(id, def) { var v = parseFloat($(id).value); return isNaN(v) || v < 0 ? def : v; }
+
+function obtenerDistanciaMN() {
+    if (estado.dist === "ruta") {
+        return Math.abs(puntosControl[estado.destino].km - puntosControl[estado.origen].km);
+    }
+    var v = num("distanciaInput", 0), u = $("unidadDistSelect").value;
+    return u === "KM" ? v / MN_A_KM : u === "MI" ? v / 1.15078 : v;
+}
+
+function calcular(ajustarMapa) {
+    var unidad = unidadesData[$("unidadSelect").value];
+    var nivel = num("nivelInput", 100) / 100;
+    var precio = num("precioGalonInput", 0);
+    var rpm = $("rpmSelect").value;
+    var D = obtenerDistanciaMN();
+
+    // Sentido automático según dirección en el río
+    if (estado.dist === "ruta" && !estado.corrienteManual) {
+        var o = puntosControl[estado.origen], d = puntosControl[estado.destino];
+        $("sentidoSelect").value = d.km > o.km ? "1" : d.km < o.km ? "-1" : "0";
+        $("corrienteAuto").textContent = "AUTO SEGÚN DIRECCIÓN";
+    } else {
+        $("corrienteAuto").textContent = estado.dist === "ruta" ? "AJUSTE MANUAL" : "";
+    }
+    var sIda = parseInt($("sentidoSelect").value, 10) || 0;
+    var corrKn = num("corrienteKn", 0);
+    var fIda = sIda;   // usado por el informe
+
+    var botes = estado.modo === "grupo" ? unidad.botes : [unidad.botes[parseInt($("boteIndSelect").value, 10) || 0]];
+    $("tituloDetalle").textContent = estado.modo === "grupo" ? "Consolidado: " + unidad.nombre : "Detalle: " + unidad.nombre + " · " + botes[0].nombre;
+
+    var tot = { cap: 0, bordo: 0, cons: 0, minimo: 0 };
+    var peor = 0;               // 0 ok, 1 sin reserva, 2 insuficiente
+    var autoMin = Infinity, autoMaxMin = Infinity, radioMin = Infinity, limitante = null;
+    var tiempoMax = 0;
+    var filas = [];
+
+    botes.forEach(function (b) {
+        var ti = tramo(b, rpm, sIda, corrKn), tv = tramo(b, rpm, -sIda, corrKn);
+        var cIda = ti.galMN, cVta = tv.galMN;
+        var consumo = D > 0 ? D * cIda + (estado.idaVuelta ? D * cVta : 0) : 0;
+        var horas = D > 0 ? D / ti.sog + (estado.idaVuelta ? D / tv.sog : 0) : 0;
+        if (ti.sog < 0.5 || (estado.idaVuelta && tv.sog < 0.5)) horas = Infinity;
+        tiempoMax = Math.max(tiempoMax, horas);
+        var bordo = b.cap * nivel;
+        var util = bordo * (1 - RESERVA);
+        var minimo = consumo / (1 - RESERVA);                // lo mínimo que debe llevar para zarpar con reserva
+        var autoRes = util / cIda, autoMax = bordo / cIda;
+        var radio = util / (cIda + cVta);                    // ida + regreso con reserva
+        var est = consumo <= util + 1e-9 ? 0 : consumo <= bordo + 1e-9 ? 1 : 2;
+        peor = Math.max(peor, est);
+        if (autoRes < autoMin) { autoMin = autoRes; limitante = b; }
+        autoMaxMin = Math.min(autoMaxMin, autoMax);
+        radioMin = Math.min(radioMin, radio);
+        tot.cap += b.cap; tot.bordo += bordo; tot.cons += consumo; tot.minimo += minimo;
+        filas.push({ b: b, consumo: consumo, bordo: bordo, pct: bordo > 0 ? consumo / bordo * 100 : 0, autoRes: autoRes, est: est, costo: consumo * precio, minimo: minimo, horas: horas, sog: ti.sog, galMN: cIda });
+    });
+
+    // Tabla
+    var etiquetas = [["APTO", "pill-ok"], ["SIN RESERVA", "pill-warn"], ["INSUFICIENTE", "pill-bad"]];
+    var html = "";
+    filas.forEach(function (f) {
+        var color = f.est === 2 ? "#f43f5e" : f.est === 1 ? "#f59e0b" : "#10b981";
+        html += "<tr>" +
+            "<td><div style='font-weight:bold;color:#fff'>" + f.b.nombre + "</div><div class='muted' style='color:#34d399'>" + f.b.motor + "</div><span class='pill m-only " + etiquetas[f.est][1] + "'>" + etiquetas[f.est][0] + "</span></td>" +
+            "<td class='c'>" + fmt(f.bordo, 0) + " gal<div class='muted'>de " + f.b.cap + "</div></td>" +
+            "<td class='c'><b style='color:#34d399'>" + fmt(f.consumo, 1) + " gal</b>" +
+            "<div class='progress-bar'><div class='progress-fill' style='width:" + Math.min(100, f.pct) + "%;background:" + color + "'></div><div class='progress-mark'></div></div>" +
+            "<div class='muted'>" + (isFinite(f.pct) ? fmt(f.pct, 0) + "% del tanque" : "No avanza") + "</div>" +
+            "<div class='muted'>" + fmtHoras(f.horas) + " · " + fmt(Math.max(0, f.sog), 1) + " kn · " + (isFinite(f.galMN) ? fmt(f.galMN, 2) : "—") + " gal/MN</div></td>" +
+            "<td class='c' style='color:#fff;font-weight:bold'>" + fmtCOP(f.costo) + "</td>" +
+            "<td class='r'><b style='color:#fbbf24'>" + fmt(f.autoRes, 0) + " MN</b><div class='muted'>" + fmt(f.autoRes * MN_A_KM, 0) + " KM</div></td>" +
+            "<td class='c col-estado'><span class='pill " + etiquetas[f.est][1] + "'>" + etiquetas[f.est][0] + "</span></td>" +
+            "</tr>";
+    });
+    $("tablaCuerpo").innerHTML = html;
+
+    // Tarjetas
+    var pct = tot.bordo > 0 ? tot.cons / tot.bordo * 100 : 0;
+    $("cardConsumo").textContent = fmt(tot.cons, 1) + " gal";
+    $("cardDistEquiv").textContent = fmt(D * (estado.idaVuelta ? 2 : 1), 1) + " MN · " + fmtHoras(tiempoMax);
+    $("cardCostoTotal").textContent = fmtCOP(tot.cons * precio);
+    $("cardPorcentaje").textContent = "Gasto: " + fmt(pct, 1) + "% de lo embarcado";
+    $("cardRestante").textContent = fmt(Math.max(0, tot.bordo - tot.cons), 1) + " gal";
+    $("cardMinimo").textContent = "Mín. a bordo: " + fmt(tot.minimo, 0) + " gal";
+    $("cardAutonomiaReserva").textContent = fmt(autoMin, 0) + " MN";
+    $("cardAutonomiaMax").textContent = (estado.idaVuelta ? "Radio de acción: " + fmt(radioMin, 0) : "Máx. sin reserva: " + fmt(autoMaxMin, 0)) + " MN";
+
+    // Estado global
+    var box = $("statusBox");
+    var dTxt = fmt(D, 1) + " MN (" + fmt(D * MN_A_KM, 1) + " KM)";
+    if (peor === 0) {
+        box.className = "status st-ok"; $("statusIco").textContent = "✔"; $("statusTitle").textContent = "Misión viable con reserva";
+        $("statusSub").textContent = dTxt + (estado.idaVuelta ? " por sentido. " : ". ") + "Margen del bote más exigido: " + fmt(Math.max(0, autoMin - D), 0) + " MN.";
+    } else if (peor === 1) {
+        box.className = "status st-warn"; $("statusIco").textContent = "⚠"; $("statusTitle").textContent = "Se consume la reserva del 30%";
+        $("statusSub").textContent = "Al menos un bote no conserva la reserva. Aumente combustible, reduzca RPM o acorte el trayecto.";
+    } else {
+        box.className = "status st-bad"; $("statusIco").textContent = "✖"; $("statusTitle").textContent = "Combustible insuficiente";
+        $("statusSub").textContent = (!isFinite(tot.cons) ? "La corriente es más rápida que algún bote a estas RPM. " : "") + "Al menos un bote no alcanza a completar la misión. Bote limitante: " + (limitante ? limitante.nombre + " (" + limitante.motor + ")" : "—") + ".";
+    }
+
+    ultimoResultado = { unidad: unidad, botes: botes, filas: filas, tot: tot, D: D, fIda: fIda, corrKn: corrKn, precio: precio, rpm: rpm, nivel: nivel, peor: peor, autoMin: autoMin, radioMin: radioMin, tiempoMax: tiempoMax };
+    actualizarMapa({ distMN: D, autoResMN: autoMin, radioAccionMN: radioMin }, ajustarMapa);
+    guardar();
+}
+var ultimoResultado = null;
+
+// =====================================================================
+// INFORME
+// =====================================================================
+function textoInforme() {
+    var r = ultimoResultado; if (!r) return "";
+    var corr = (r.fIda < 0 ? "ida aguas arriba" : r.fIda > 0 ? "ida aguas abajo" : "aguas calmas") + (r.fIda !== 0 ? " (corriente " + fmt(r.corrKn, 1) + " kn)" : "");
+    var tray = estado.dist === "ruta"
+        ? puntosControl[estado.origen].n + " → " + puntosControl[estado.destino].n
+        : "Distancia manual";
+    var est = ["VIABLE CON RESERVA", "CONSUME RESERVA", "COMBUSTIBLE INSUFICIENTE"][r.peor];
+    var l = [
+        "*PLANEAMIENTO COMBUSTIBLE — " + r.unidad.nombre + "*",
+        "Fecha: " + new Date().toLocaleString("es-CO"),
+        "Trayecto: " + tray + (estado.idaVuelta ? " (ida y regreso)" : " (solo ida)"),
+        "Distancia: " + fmt(r.D, 1) + " MN / " + fmt(r.D * MN_A_KM, 1) + " KM por sentido",
+        corr.charAt(0).toUpperCase() + corr.slice(1) + " · " + parseInt(r.rpm, 10).toLocaleString("es-CO") + " RPM · A bordo " + Math.round(r.nivel * 100) + "%",
+        "",
+        "Estado: *" + est + "*",
+        "Combustible requerido: " + fmt(r.tot.cons, 1) + " gal",
+        "Tiempo de navegación estimado: " + fmtHoras(r.tiempoMax),
+        "Mínimo a bordo (con 30% reserva): " + fmt(r.tot.minimo, 0) + " gal",
+        "Costo estimado: " + fmtCOP(r.tot.cons * r.precio) + " COP (" + fmtCOP(r.precio) + "/gal)",
+        "",
+        "Detalle por bote:"
+    ];
+    r.filas.forEach(function (f) {
+        l.push("- " + f.b.nombre + " (" + f.b.motor + "): " + (isFinite(f.consumo) ? fmt(f.consumo, 1) + " gal, " + fmt(f.pct, 0) + "% del tanque" : "no avanza contra la corriente") + " — " + ["APTO", "SIN RESERVA", "INSUFICIENTE"][f.est]);
+    });
+    return l.join("\n");
+}
+
+function toast(msg) { var t = $("toast"); t.textContent = msg; t.className = "toast show"; setTimeout(function () { t.className = "toast"; }, 1800); }
+
+function copiar() {
+    var txt = textoInforme();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(function () { toast("Informe copiado"); }, function () { copiarRespaldo(txt); });
+    } else copiarRespaldo(txt);
+}
+function copiarRespaldo(txt) {
+    var ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast("Informe copiado"); } catch (e) { toast("No se pudo copiar"); }
+    document.body.removeChild(ta);
+}
+function compartir() {
+    var txt = textoInforme();
+    if (navigator.share) navigator.share({ title: "Planeamiento combustible", text: txt }).catch(function () {});
+    else window.open("https://wa.me/?text=" + encodeURIComponent(txt), "_blank");
+}
+
+// =====================================================================
+// UI
+// =====================================================================
+function llenarSelects() {
+    var u = $("unidadSelect");
+    Object.keys(unidadesData).forEach(function (k) {
+        var o = document.createElement("option"); o.value = k;
+        o.textContent = unidadesData[k].nombre + " (" + unidadesData[k].botes.length + " botes bimotor)";
+        u.appendChild(o);
+    });
+    ["origenSelect", "destinoSelect"].forEach(function (id) {
+        var s = $(id);
+        puntosControl.forEach(function (p, i) {
+            var o = document.createElement("option"); o.value = i;
+            o.textContent = p.n + " · km " + (p.km * MN_A_KM).toFixed(0);
+            s.appendChild(o);
+        });
+    });
+}
+
+function renderBotes() {
+    var s = $("boteIndSelect"), prev = s.value;
+    var botes = unidadesData[$("unidadSelect").value].botes;
+    s.innerHTML = "";
+    botes.forEach(function (b, i) {
+        var o = document.createElement("option"); o.value = i;
+        o.textContent = b.nombre + " (" + b.motor + " · " + b.cap + " gal)";
+        s.appendChild(o);
+    });
+    if (prev && prev < botes.length) s.value = prev;
+}
+
+function activar(a, b, on) { $(a).classList.toggle("active", on); $(b).classList.toggle("active", !on); }
+
+function sincronizarUI() {
+    activar("btnModoGrupo", "btnModoInd", estado.modo === "grupo");
+    activar("btnRuta", "btnManual", estado.dist === "ruta");
+    activar("btnIdaVuelta", "btnSoloIda", estado.idaVuelta);
+    $("containerBoteInd").classList.toggle("hidden", estado.modo === "grupo");
+    $("boxRuta").classList.toggle("hidden", estado.dist !== "ruta");
+    $("boxManual").classList.toggle("hidden", estado.dist === "ruta");
+    $("origenSelect").value = estado.origen;
+    $("destinoSelect").value = estado.destino;
+    $("nivelVal").textContent = $("nivelInput").value + "%";
+    var bm = $("badgeModo");
+    bm.textContent = estado.modo === "grupo" ? "CONSOLIDADO" : "INDIVIDUAL";
+    bm.className = "pill " + (estado.modo === "grupo" ? "pill-ok" : "pill-warn");
+}
+
+var CAMPOS = ["unidadSelect", "boteIndSelect", "distanciaInput", "unidadDistSelect", "precioGalonInput", "sentidoSelect", "corrienteKn", "rpmSelect", "nivelInput"];
+var CLAVE = "eofbc_calc_v3";
+function guardar() {
+    try {
+        var d = { estado: estado, campos: {} };
+        CAMPOS.forEach(function (id) { d.campos[id] = $(id).value; });
+        d.perfiles = perfiles;
+        localStorage.setItem(CLAVE, JSON.stringify(d));
+    } catch (e) {}
+}
+function restaurar() {
+    try {
+        var d = JSON.parse(localStorage.getItem(CLAVE) || "null");
+        if (!d) return;
+        if (d.perfiles) Object.keys(PERFILES_REF).forEach(function (k) {
+            RPMS.forEach(function (r) {
+                var v = d.perfiles[k] && d.perfiles[k].d && d.perfiles[k].d[r];
+                if (v && v.gph > 0 && v.kn > 0) perfiles[k].d[r] = { gph: +v.gph, kn: +v.kn };
             });
+        });
+        Object.keys(estado).forEach(function (k) { if (k in d.estado) estado[k] = d.estado[k]; });
+        if (!(estado.origen < puntosControl.length)) estado.origen = IDX_BASE;
+        if (!(estado.destino < puntosControl.length)) estado.destino = 4;
+        if (d.campos.unidadSelect && unidadesData[d.campos.unidadSelect]) $("unidadSelect").value = d.campos.unidadSelect;
+        renderBotes();
+        CAMPOS.forEach(function (id) { if (id !== "unidadSelect" && d.campos[id] != null) $(id).value = d.campos[id]; });
+    } catch (e) {}
+}
 
-            // Capa de Cartografía Estándar
-            var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 17
-            });
-
-            esriSat.addTo(map);
-
-            var baseMaps = {
-                "Satelital": esriSat,
-                "Mapa": osm
-            };
-
-            L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
-
-            // Dibujar línea táctica del curso del Río Arauca
-            rioLayer = L.polyline(puntosRioArauca, {
-                color: '#22d3ee',
-                weight: 4,
-                opacity: 0.85,
-                dashArray: '8, 6'
-            }).addTo(map);
-
-            // Marcadores tácticos clave
-           // ===============================
-// PUNTOS DE CONTROL FLUVIAL
-// ===============================
-
-L.circleMarker([7.051557, -71.823893], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Puerto Contreras</b><br>Punto de inicio del área fluvial");
-
-L.circleMarker([7.031526, -71.698908], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Puerto Lleras</b><br>Punto de control fluvial");
-
-L.circleMarker([7.033046, -71.592333], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Bocas de Juju</b><br>Punto de control fluvial");
-
-L.circleMarker([7.008845, -71.466136], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Peralonso</b><br>Punto de control fluvial");
-
-L.circleMarker([7.029725, -71.432720], {
-    radius: 6,
-    color: '#fbbf24',
-    fillColor: '#fbbf24',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Arauquita</b><br>Punto de Control Fluvial");
-
-L.circleMarker([7.021171, -71.383579], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>El Troncal</b><br>Punto de control fluvial");
-
-L.circleMarker([7.018370, -71.322601], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Carretero</b><br>Punto de control fluvial");
-
-L.circleMarker([7.010803, -71.240196], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Bocas de Gaviota</b><br>Punto de control fluvial");
-
-L.circleMarker([6.949453, -71.188023], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>La Reinera</b><br>Punto de control fluvial");
-
-L.circleMarker([6.992315, -71.113329], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Los Angelitos</b><br>Punto de control fluvial");
-
-L.circleMarker([6.976637, -71.015815], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>La Yuca</b><br>Punto de control fluvial");
-
-L.circleMarker([7.002735, -70.974450], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Picacho</b><br>Punto de control fluvial");
-
-L.circleMarker([7.045109, -70.899987], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Los Mangos</b><br>Punto de control fluvial");
-
-L.circleMarker([7.056161, -70.863581], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>La Payara</b><br>Punto de control fluvial");
-
-L.circleMarker([7.075120, -70.855487], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>El Torno</b><br>Punto de control fluvial");
-
-
-// ===============================
-// PFA 20 DE JULIO / BASE PRINCIPAL
-// ===============================
-
-L.circleMarker([7.087612, -70.769784], {
-    radius: 7,
-    color: '#10b981',
-    fillColor: '#10b981',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>BFLIM52 / PFA 20 de Julio</b><br>Base Principal");
-
-
-// ===============================
-// SECTOR NORTE / OCCIDENTAL
-// ===============================
-
-L.circleMarker([7.104574, -70.682069], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Caño Verde</b><br>Punto de control fluvial");
-
-L.circleMarker([7.077160, -70.643742], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Clarinetero</b><br>Punto de control fluvial");
-
-L.circleMarker([7.063755, -70.607084], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>El Manguito</b><br>Punto de control fluvial");
-
-L.circleMarker([7.068812, -70.585603], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>La Lorena</b><br>Punto de control fluvial");
-
-L.circleMarker([7.077219, -70.562351], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>La Estrellita</b><br>Punto de control fluvial");
-
-L.circleMarker([7.003234, -70.449055], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>El Coco</b><br>Punto de control fluvial");
-
-L.circleMarker([6.981381, -70.397358], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>El Picure</b><br>Punto de control fluvial");
-
-L.circleMarker([6.939144, -70.275413], {
-    radius: 6,
-    color: '#3b82f6',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Caracol</b><br>Punto de control fluvial");
-
-
-// ===============================
-// PUERTO COLOMBIA - FINAL DEL ÁREA
-// ===============================
-
-L.circleMarker([6.977519, -70.118000], {
-    radius: 7,
-    color: '#ef4444',
-    fillColor: '#ef4444',
-    fillOpacity: 0.9
-})
-.addTo(map)
-.bindPopup("<b>Puerto Colombia</b><br>Punto final del área fluvial");
-
-            
-        }
-
-        function renderSeleccionBote() {
-            var unidadKey = document.getElementById('unidadSelect').value;
-            var boteSelect = document.getElementById('boteIndSelect');
-            var botes = unidadesData[unidadKey].botes;
-
-            boteSelect.innerHTML = "";
-            for (var i = 0; i < botes.length; i++) {
-                var opt = document.createElement('option');
-                opt.value = i;
-                opt.innerText = botes[i].nombre + " (" + botes[i].motor + " - " + botes[i].cap + " Gln)";
-                boteSelect.appendChild(opt);
-            }
-        }
-
-        function setModo(modo) {
-            modoActual = modo;
-            var btnGrupo = document.getElementById('btnModoGrupo');
-            var btnInd = document.getElementById('btnModoInd');
-            var containerBoteInd = document.getElementById('containerBoteInd');
-            var badgeModo = document.getElementById('badgeModo');
-
-            if (modo === 'grupo') {
-                btnGrupo.className = "btn-toggle active";
-                btnInd.className = "btn-toggle";
-                containerBoteInd.className = "field-group hidden";
-                badgeModo.innerText = "CONSOLIDADO";
-                badgeModo.style.background = "#064e3b";
-                badgeModo.style.color = "#34d399";
-            } else {
-                btnInd.className = "btn-toggle active";
-                btnGrupo.className = "btn-toggle";
-                containerBoteInd.className = "field-group";
-                badgeModo.innerText = "INDIVIDUAL";
-                badgeModo.style.background = "#164e63";
-                badgeModo.style.color = "#22d3ee";
-            }
-            renderSeleccionBote();
+function renderEditor() {
+    var cont = $("editorPerfiles"), html = "";
+    Object.keys(perfiles).forEach(function (k) {
+        html += "<div><div class='perf-title'>" + perfiles[k].nombre + "</div><table class='perf-table'><thead><tr><th>RPM</th><th class='c'>gal/h</th><th class='c'>nudos</th><th class='c'>gal/MN</th></tr></thead><tbody>";
+        RPMS.forEach(function (r) {
+            var v = perfiles[k].d[r];
+            html += "<tr><td>" + parseInt(r, 10).toLocaleString("es-CO") + "</td>" +
+                "<td><input type='number' step='0.1' min='0.1' inputmode='decimal' data-k='" + k + "' data-r='" + r + "' data-c='gph' value='" + v.gph + "'></td>" +
+                "<td><input type='number' step='0.5' min='1' inputmode='decimal' data-k='" + k + "' data-r='" + r + "' data-c='kn' value='" + v.kn + "'></td>" +
+                "<td class='c' id='gm_" + k + "_" + r + "'>" + fmt(v.gph / v.kn, 2) + "</td></tr>";
+        });
+        html += "</tbody></table></div>";
+    });
+    cont.innerHTML = html;
+    cont.querySelectorAll("input").forEach(function (inp) {
+        inp.addEventListener("input", function () {
+            var v = parseFloat(inp.value);
+            if (!(v > 0)) return;
+            var it = perfiles[inp.dataset.k].d[inp.dataset.r];
+            it[inp.dataset.c] = v;
+            $("gm_" + inp.dataset.k + "_" + inp.dataset.r).textContent = fmt(it.gph / it.kn, 2);
             calcular();
-        }
+        });
+    });
+}
 
-        function formatoCOP(valor) {
-            return "$" + Math.round(valor).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
+function bindEvents() {
+    $("btnModoGrupo").onclick = function () { estado.modo = "grupo"; sincronizarUI(); calcular(); };
+    $("btnModoInd").onclick = function () { estado.modo = "individual"; sincronizarUI(); calcular(); };
+    $("btnRuta").onclick = function () { estado.dist = "ruta"; estado.corrienteManual = false; sincronizarUI(); calcular(true); };
+    $("btnManual").onclick = function () { estado.dist = "manual"; sincronizarUI(); calcular(); };
+    $("btnIdaVuelta").onclick = function () { estado.idaVuelta = true; sincronizarUI(); calcular(); };
+    $("btnSoloIda").onclick = function () { estado.idaVuelta = false; sincronizarUI(); calcular(); };
+    $("btnInvertir").onclick = function () {
+        var t = estado.origen; estado.origen = estado.destino; estado.destino = t;
+        estado.corrienteManual = false; sincronizarUI(); calcular();
+    };
+    $("origenSelect").onchange = function () { estado.origen = parseInt(this.value, 10); estado.corrienteManual = false; calcular(true); };
+    $("destinoSelect").onchange = function () { estado.destino = parseInt(this.value, 10); estado.corrienteManual = false; calcular(true); };
+    $("sentidoSelect").onchange = function () { estado.corrienteManual = true; calcular(); };
+    $("corrienteKn").addEventListener("input", function () { $("temporadaSelect").value = ""; calcular(); });
+    $("temporadaSelect").onchange = function () { if (this.value) { $("corrienteKn").value = this.value; calcular(); } };
+    $("btnRestaurar").onclick = function () { perfiles = JSON.parse(JSON.stringify(PERFILES_REF)); renderEditor(); calcular(); toast("Valores de referencia restaurados"); };
+    $("unidadSelect").onchange = function () { renderBotes(); calcular(); };
+    $("nivelInput").oninput = function () { $("nivelVal").textContent = this.value + "%"; calcular(); };
+    ["boteIndSelect", "distanciaInput", "unidadDistSelect", "precioGalonInput", "rpmSelect"].forEach(function (id) {
+        $(id).addEventListener("input", function () { calcular(); });
+        $(id).addEventListener("change", function () { calcular(); });
+    });
+    $("btnCopiar").onclick = copiar;
+    $("btnCompartir").onclick = compartir;
+}
 
-        function obtenerFactorRPM(rpmSeleccionadas, hpBote) {
-            var rpm = parseInt(rpmSeleccionadas);
-            if (hpBote <= 115) {
-                if (rpm <= 2500) return 0.65;
-                if (rpm <= 4000) return 0.85;
-                if (rpm <= 4800) return 1.00;
-                return 1.30;
-            } else {
-                if (rpm <= 2500) return 0.55;
-                if (rpm <= 4000) return 0.75;
-                if (rpm <= 4800) return 0.90;
-                return 1.15;
-            }
-        }
-
-        function calcular() {
-            var unidadKey = document.getElementById('unidadSelect').value || "EOFBC_52_2";
-            var unidadInfo = unidadesData[unidadKey];
-            
-            var rawDist = document.getElementById('distanciaInput').value;
-            var distVal = parseFloat(rawDist);
-            if (isNaN(distVal) || distVal <= 0) distVal = 0;
-
-            var unidadDist = document.getElementById('unidadDistSelect').value || "MN";
-            
-            var rawPrecio = document.getElementById('precioGalonInput').value;
-            var precioGalon = parseFloat(rawPrecio);
-            if (isNaN(precioGalon) || precioGalon < 0) precioGalon = 0;
-
-            var factorCorriente = parseFloat(document.getElementById('corrienteSelect').value) || 1.0;
-            var rpmSeleccionadas = document.getElementById('rpmSelect').value || "4800";
-
-            var distanciaMN = distVal;
-            if (unidadDist === "KM") {
-                distanciaMN = distVal / 1.852;
-            } else if (unidadDist === "MI") {
-                distanciaMN = distVal / 1.15078;
-            }
-
-            var botesACalcular = [];
-            if (modoActual === 'grupo') {
-                botesACalcular = unidadInfo.botes;
-                document.getElementById('tituloDetalle').innerText = "Consolidado: " + unidadInfo.nombre;
-            } else {
-                var indexBote = parseInt(document.getElementById('boteIndSelect').value);
-                if (isNaN(indexBote)) indexBote = 0;
-                botesACalcular = [unidadInfo.botes[indexBote] || unidadInfo.botes[0]];
-                document.getElementById('tituloDetalle').innerText = "Detalle: " + botesACalcular[0].nombre;
-            }
-
-            var totalCapacidad = 0;
-            var totalConsumo = 0;
-            var tablaHTML = "";
-
-            for (var i = 0; i < botesACalcular.length; i++) {
-                var b = botesACalcular[i];
-                var factorRPM = obtenerFactorRPM(rpmSeleccionadas, b.hp);
-                
-                var consumoBote = distanciaMN * b.cons * factorCorriente * factorRPM;
-                var pctGastadoBote = b.cap > 0 ? Math.min(100, (consumoBote / b.cap) * 100) : 0;
-                var costoBote = consumoBote * precioGalon;
-                
-                var consAjustadoPorMN = b.cons * factorCorriente * factorRPM;
-                var autoMaxMN = consAjustadoPorMN > 0 ? (b.cap / consAjustadoPorMN) : 0;
-                var autoResMN = autoMaxMN * 0.70;
-
-                totalCapacidad += b.cap;
-                totalConsumo += consumoBote;
-
-                var colorBarra = "#10b981";
-                if (pctGastadoBote > 80) colorBarra = "#f43f5e";
-                else if (pctGastadoBote > 60) colorBarra = "#f59e0b";
-
-                tablaHTML += '<tr>' +
-                    '<td><div style="font-weight:bold; color:#ffffff !important;">' + b.nombre + '</div><div style="font-size:0.65rem; color:#34d399 !important;">' + b.motor + '</div></td>' +
-                    '<td style="text-align:center; color:#cbd5e1 !important; font-weight:600;">' + b.cap + ' Gln</td>' +
-                    '<td style="text-align:center;"><span style="font-weight:bold; color:#34d399 !important;">' + consumoBote.toFixed(1) + ' Gln</span>' +
-                    '<div class="progress-bar"><div class="progress-fill" style="width: ' + pctGastadoBote + '%; background: ' + colorBarra + ';"></div></div></td>' +
-                    '<td style="text-align:center; font-weight:bold; color:#ffffff !important;">' + formatoCOP(costoBote) + '</td>' +
-                    '<td style="text-align:right;"><div style="font-weight:bold; color:#fbbf24 !important;">' + autoResMN.toFixed(0) + ' MN</div>' +
-                    '<div style="font-size:0.6rem; color:#94a3b8 !important;">' + (autoResMN * 1.852).toFixed(0) + ' KM</div></td>' +
-                    '</tr>';
-            }
-
-            var totalRestante = Math.max(0, totalCapacidad - totalConsumo);
-            var totalPctGastado = totalCapacidad > 0 ? Math.min(100, (totalConsumo / totalCapacidad) * 100) : 0;
-            var costoTotalMision = totalConsumo * precioGalon;
-
-            var consPromedioGrupoAjustado = 0;
-            for (var j = 0; j < botesACalcular.length; j++) {
-                var bGrupo = botesACalcular[j];
-                consPromedioGrupoAjustado += (bGrupo.cons * factorCorriente * obtenerFactorRPM(rpmSeleccionadas, bGrupo.hp));
-            }
-            
-            var autoMaxGrupoMN = consPromedioGrupoAjustado > 0 ? (totalCapacidad / consPromedioGrupoAjustado) : 0;
-            var autoResGrupoMN = autoMaxGrupoMN * 0.70;
-
-            document.getElementById('cardConsumo').innerText = totalConsumo.toFixed(1) + " Gln";
-            document.getElementById('cardDistEquiv').innerText = unidadDist === "MN" ? (distanciaMN * 1.852).toFixed(1) + " KM equiv." : distanciaMN.toFixed(1) + " MN equiv.";
-            document.getElementById('cardCostoTotal').innerText = formatoCOP(costoTotalMision);
-            document.getElementById('cardPorcentaje').innerText = "Gasto: " + totalPctGastado.toFixed(1) + "%";
-            document.getElementById('cardRestante').innerText = totalRestante.toFixed(1) + " Gln";
-            document.getElementById('cardAutonomiaReserva').innerText = autoResGrupoMN.toFixed(0) + " MN";
-            document.getElementById('cardAutonomiaMax').innerText = "Max: " + autoMaxGrupoMN.toFixed(0) + " MN";
-
-            document.getElementById('tablaCuerpo').innerHTML = tablaHTML;
-        }
-
-        function bindEvents() {
-            document.getElementById('btnModoGrupo').onclick = function() { setModo('grupo'); };
-            document.getElementById('btnModoInd').onclick = function() { setModo('individual'); };
-
-            var elementIds = ['unidadSelect', 'boteIndSelect', 'distanciaInput', 'unidadDistSelect', 'precioGalonInput', 'corrienteSelect', 'rpmSelect'];
-            var events = ['input', 'change', 'keyup', 'blur'];
-
-            for (var i = 0; i < elementIds.length; i++) {
-                var el = document.getElementById(elementIds[i]);
-                if (el) {
-                    for (var j = 0; j < events.length; j++) {
-                        el.addEventListener(events[j], (function(id) {
-                            return function() {
-                                if (id === 'unidadSelect') renderSeleccionBote();
-                                calcular();
-                            };
-                        })(elementIds[i]));
-                    }
-                }
-            }
-        }
-
-        window.onload = function() {
-            bindEvents();
-            renderSeleccionBote();
-            initMap();
-            calcular();
-        };
-    </script>
+window.addEventListener("load", function () {
+    prepararRio();
+    llenarSelects();
+    renderBotes();
+    restaurar();
+    renderEditor();
+    sincronizarUI();
+    bindEvents();
+    initMap();
+    calcular(true);
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(function () {});
+});
+</script>
 </body>
 </html>
